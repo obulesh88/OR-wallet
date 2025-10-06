@@ -1,19 +1,13 @@
-import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Gift } from "lucide-react";
+import { Gift, PartyPopper } from "lucide-react";
 
 export default function RewardsPage() {
-  const giftCards = PlaceHolderImages.filter(img => img.imageHint.includes("giftcard"));
-
   return (
     <div className="space-y-6">
       <Card>
@@ -28,29 +22,20 @@ export default function RewardsPage() {
           </CardDescription>
         </CardHeader>
       </Card>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {giftCards.map((card) => (
-          <Card key={card.id}>
-            <CardContent className="p-0">
-              <Image
-                src={card.imageUrl}
-                alt={card.description}
-                width={200}
-                height={120}
-                className="w-full h-32 object-cover rounded-t-lg"
-                data-ai-hint={card.imageHint}
-              />
-            </CardContent>
-            <CardHeader>
-              <CardTitle className="text-lg">{card.description}</CardTitle>
-              <CardDescription>Starting from 5,000 coins</CardDescription>
-            </CardHeader>
-            <CardFooter>
-              <Button className="w-full">Redeem</Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+      <Card>
+        <CardContent className="p-12">
+          <div className="flex flex-col items-center justify-center text-center gap-4">
+            <PartyPopper className="w-16 h-16 text-primary" />
+            <h2 className="text-2xl font-bold tracking-tight">
+              Coming Soon!
+            </h2>
+            <p className="text-muted-foreground max-w-sm">
+              We&apos;re working hard to bring you exciting new rewards and gift
+              cards. Please check back later.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
