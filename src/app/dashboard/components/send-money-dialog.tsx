@@ -38,7 +38,6 @@ const formSchema = z.object({
   accountNumber: z.string().min(1, 'Account number is required'),
   ifscCode: z.string().min(1, 'IFSC code is required'),
   bankName: z.string().min(1, 'Bank name is required'),
-  amount: z.coerce.number().positive('Amount must be positive'),
 });
 
 type SendMoneyFormValues = z.infer<typeof formSchema>;
@@ -68,7 +67,6 @@ export function SendMoneyDialog() {
       accountNumber: '',
       ifscCode: '',
       bankName: '',
-      amount: 0,
     },
   });
 
@@ -76,7 +74,7 @@ export function SendMoneyDialog() {
     console.log(data);
     toast({
       title: 'Transfer initiated',
-      description: `Sending ${data.amount.toLocaleString()} coins to ${data.accountHolder}.`,
+      description: `Sending coins to ${data.accountHolder}.`,
     });
     form.reset();
   };
@@ -162,19 +160,6 @@ export function SendMoneyDialog() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
