@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,9 +12,23 @@ import {
 import { Coins, History, Send } from "lucide-react";
 import Link from "next/link";
 import { SendMoneyDialog } from "./send-money-dialog";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function BalanceCard() {
   const balance = 12345.67;
+  const [hasBankDetails, setHasBankDetails] = useState(false);
+  const router = useRouter();
+
+  const handleSendClick = () => {
+    if (hasBankDetails) {
+      router.push('/dashboard/send');
+    }
+  };
+
+  const onBankDetailsSubmit = () => {
+    setHasBankDetails(true);
+  };
 
   return (
     <Card>
@@ -37,7 +53,13 @@ export function BalanceCard() {
             <History className="mr-2" /> Wallet History
           </Link>
         </Button>
-        <SendMoneyDialog />
+        {hasBankDetails ? (
+           <Button onClick={handleSendClick}>
+            <Send className="mr-2" /> Send
+          </Button>
+        ) : (
+          <SendMoneyDialog onBankDetailsSubmit={onBankDetailsSubmit} />
+        )}
       </CardFooter>
     </Card>
   );

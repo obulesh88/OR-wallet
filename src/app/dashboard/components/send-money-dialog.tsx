@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useState } from 'react';
 
 const formSchema = z.object({
   accountHolder: z.string().min(1, 'Account holder name is required'),
@@ -58,8 +59,13 @@ const indianBanks = [
   'Indian Overseas Bank',
 ];
 
-export function SendMoneyDialog() {
+type SendMoneyDialogProps = {
+  onBankDetailsSubmit: () => void;
+};
+
+export function SendMoneyDialog({ onBankDetailsSubmit }: SendMoneyDialogProps) {
   const { toast } = useToast();
+  const [open, setOpen] = useState(false);
   const form = useForm<SendMoneyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,14 +79,16 @@ export function SendMoneyDialog() {
   const onSubmit = (data: SendMoneyFormValues) => {
     console.log(data);
     toast({
-      title: 'Transfer initiated',
-      description: `Sending coins to ${data.accountHolder}.`,
+      title: 'Bank details saved',
+      description: `Your bank account details have been saved successfully.`,
     });
     form.reset();
+    onBankDetailsSubmit();
+    setOpen(false); // Close the dialog
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Send className="mr-2" /> Send
@@ -88,7 +96,7 @@ export function SendMoneyDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Send Coins</DialogTitle>
+          <DialogTitle>Add Bank Details</DialogTitle>
           <DialogDescription>
             Enter the recipient&apos;s bank details to send coins.
           </DialogDescription>
@@ -165,9 +173,7 @@ export function SendMoneyDialog() {
               )}
             />
             <DialogFooter>
-              <DialogClose asChild>
-                <Button type="submit">Confirm & Send</Button>
-              </DialogClose>
+                <Button type="submit">Save Details</Button>
             </DialogFooter>
           </form>
         </Form>
