@@ -71,6 +71,7 @@ export default function TransactionsPage() {
                         ? "default"
                         : "destructive"
                     }
+                    className={cn(transaction.status === "Completed" && "bg-green-700/20 text-green-400 border-green-700/40 hover:bg-green-700/30" )}
                   >
                     {transaction.status}
                   </Badge>
@@ -79,7 +80,7 @@ export default function TransactionsPage() {
                   className={cn(
                     "text-right font-semibold",
                     transaction.amount > 0
-                      ? "text-[hsl(var(--accent))]"
+                      ? "text-green-400"
                       : "text-foreground"
                   )}
                 >

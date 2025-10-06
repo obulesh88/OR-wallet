@@ -39,7 +39,7 @@ export function TransactionHistory() {
               className={cn(
                 "font-semibold",
                 transaction.amount > 0
-                  ? "text-[hsl(var(--accent))]"
+                  ? "text-green-400"
                   : "text-foreground"
               )}
             >
