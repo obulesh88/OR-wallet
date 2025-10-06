@@ -25,6 +25,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const formSchema = z.object({
   accountHolder: z.string().min(1, 'Account holder name is required'),
@@ -34,6 +41,22 @@ const formSchema = z.object({
 });
 
 type SendMoneyFormValues = z.infer<typeof formSchema>;
+
+const indianBanks = [
+  'State Bank of India (SBI)',
+  'HDFC Bank',
+  'ICICI Bank',
+  'Axis Bank',
+  'Kotak Mahindra Bank',
+  'IndusInd Bank',
+  'RBL Bank',
+  'Bank of Baroda',
+  'Punjab National Bank',
+  'Union Bank of India',
+  'Canara Bank',
+  'Bank of India',
+  'Indian Overseas Bank',
+];
 
 export function SendMoneyDialog() {
   const { toast } = useToast();
@@ -107,9 +130,23 @@ export function SendMoneyDialog() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bank Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Coin Bank" {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a bank" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {indianBanks.map((bank) => (
+                        <SelectItem key={bank} value={bank}>
+                          {bank}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
