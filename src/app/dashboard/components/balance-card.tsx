@@ -7,7 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Coins, Plus, ArrowDown } from "lucide-react";
+import { Coins, History, Send } from "lucide-react";
+import Link from "next/link";
 
 export function BalanceCard() {
   const balance = 12345.67;
@@ -30,11 +31,13 @@ export function BalanceCard() {
         </CardDescription>
       </CardContent>
       <CardFooter className="flex gap-2">
-        <Button>
-          <Plus className="mr-2" /> Add Coins
+        <Button variant="secondary" asChild>
+          <Link href="/dashboard/transactions">
+            <History className="mr-2" /> Wallet History
+          </Link>
         </Button>
-        <Button variant="secondary">
-          <ArrowDown className="mr-2" /> Withdraw
+        <Button>
+          <Send className="mr-2" /> Send
         </Button>
       </CardFooter>
     </Card>
