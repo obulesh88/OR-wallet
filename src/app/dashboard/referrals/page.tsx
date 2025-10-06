@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Copy, Users, Twitter, Facebook, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 const referrals = [
   {
@@ -74,12 +75,12 @@ export default function ReferralsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label
+              <Label
                 htmlFor="referral-link"
-                className="text-sm font-medium text-muted-foreground"
+                className="text-sm font-medium"
               >
                 Your referral link
-              </label>
+              </Label>
               <div className="flex gap-2 mt-1">
                 <Input
                   id="referral-link"

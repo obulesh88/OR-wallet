@@ -36,16 +36,16 @@ export default function SendPage() {
 
   return (
     <div className="flex justify-center items-center">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Send /> Send Coins
-          </CardTitle>
-          <CardDescription>
-            Your bank details are saved. Enter the amount to send.
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send /> Send Coins
+            </CardTitle>
+            <CardDescription>
+              Your bank details are saved. Enter the amount to send.
+            </CardDescription>
+          </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -91,8 +91,8 @@ export default function SendPage() {
               Confirm & Send
             </Button>
           </CardFooter>
-        </form>
-      </Card>
+        </Card>
+      </form>
     </div>
   );
 }
