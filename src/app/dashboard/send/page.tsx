@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
 
 export default function SendPage() {
   const { toast } = useToast();
@@ -57,11 +58,31 @@ export default function SendPage() {
                   required
                 />
               </div>
-              <div className="p-4 bg-muted rounded-md text-sm">
+              <div className="p-4 bg-muted rounded-md text-sm space-y-2">
                   <p className="font-semibold">Recipient Details:</p>
-                  <p className="text-muted-foreground">John Doe</p>
-                  <p className="text-muted-foreground">XXXXXXXXXX1234</p>
-                  <p className="text-muted-foreground">State Bank of India (SBI)</p>
+                  <div className='text-muted-foreground'>
+                    <p>John Doe</p>
+                    <p>XXXXXXXXXX1234</p>
+                    <p>State Bank of India (SBI)</p>
+                  </div>
+              </div>
+              <div className="p-4 bg-muted rounded-md text-sm space-y-4">
+                  <p className="font-semibold">Transaction Summary</p>
+                  <div className='space-y-2 text-muted-foreground'>
+                    <div className='flex justify-between'>
+                      <span>Amount</span>
+                      <span>1,000</span>
+                    </div>
+                     <div className='flex justify-between'>
+                      <span>Fee</span>
+                      <span>20</span>
+                    </div>
+                    <Separator className="bg-border/50" />
+                     <div className='flex justify-between font-medium text-foreground'>
+                      <span>Total</span>
+                      <span>1,020</span>
+                    </div>
+                  </div>
               </div>
             </div>
           </CardContent>
