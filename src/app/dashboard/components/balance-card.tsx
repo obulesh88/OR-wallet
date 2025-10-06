@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Coins, History, Send } from "lucide-react";
 import Link from "next/link";
+import { SendMoneyDialog } from "./send-money-dialog";
 
 export function BalanceCard() {
   const balance = 12345.67;
@@ -36,9 +37,7 @@ export function BalanceCard() {
             <History className="mr-2" /> Wallet History
           </Link>
         </Button>
-        <Button>
-          <Send className="mr-2" /> Send
-        </Button>
+        <SendMoneyDialog />
       </CardFooter>
     </Card>
   );
