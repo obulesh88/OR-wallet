@@ -105,7 +105,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onO
   };
   
   const dialogTitle = isEditing ? 'Edit Bank Details' : 'Add Bank Details';
-  const dialogDescription = isEditing ? "Update the recipient's bank details." : "Enter the recipient's bank details to send coins.";
+  const dialogDescription = isEditing ? "Update the recipient's bank details." : "Enter the recipient's bank details to send Ora Coins.";
 
 
   return (

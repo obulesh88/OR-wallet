@@ -3,8 +3,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "CoinCraft Wallet",
-  description: "Manage and convert your digital coins with ease.",
+  title: "OraCoin Wallet",
+  description: "Manage and convert your digital Ora Coins with ease.",
 };
 
 export default function RootLayout({

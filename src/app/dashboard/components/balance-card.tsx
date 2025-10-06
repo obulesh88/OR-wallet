@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 
 export function BalanceCard() {
   const balance = 12345.67;
+  const rupeeBalance = balance / 100;
   const [hasBankDetails, setHasBankDetails] = useState(false);
   const router = useRouter();
 
@@ -52,7 +53,10 @@ export function BalanceCard() {
           })}
         </div>
         <CardDescription className="text-xs text-muted-foreground mt-1">
-          Available coins in your wallet
+          Available Ora Coins in your wallet (₹{rupeeBalance.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })})
         </CardDescription>
       </CardContent>
       <CardFooter className="flex gap-2">
