@@ -24,7 +24,6 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { UserNav } from "@/components/user-nav";
 import { Separator } from "@/components/ui/separator";
 
 const navItems = [
@@ -114,7 +113,6 @@ export default function DashboardLayout({
             <SidebarTrigger className="md:hidden" />
             <h1 className="text-xl font-semibold tracking-tight hidden md:block">{getPageTitle()}</h1>
           </div>
-          <UserNav />
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {children}
