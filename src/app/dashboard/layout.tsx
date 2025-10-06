@@ -6,8 +6,6 @@ import {
   Home,
   ArrowRightLeft,
   Gift,
-  Users,
-  ShieldCheck,
   Settings,
 } from "lucide-react";
 
@@ -24,18 +22,12 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { Separator } from "@/components/ui/separator";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/dashboard/transactions", icon: ArrowRightLeft, label: "Transactions" },
   { href: "/dashboard/rewards", icon: Gift, label: "Rewards" },
-  { href: "/dashboard/referrals", icon: Users, label: "Referrals" },
 ];
-
-const adminNavItems = [
-    { href: "/dashboard/admin", icon: ShieldCheck, label: "Admin Panel" },
-]
 
 export default function DashboardLayout({
   children,
@@ -45,7 +37,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   const getPageTitle = () => {
-    const allItems = [...navItems, ...adminNavItems, { href: "/dashboard/settings", icon: Settings, label: "Settings" }];
+    const allItems = [...navItems, { href: "/dashboard/settings", icon: Settings, label: "Settings" }];
     const currentItem = allItems.find(item => pathname === item.href);
     return currentItem ? currentItem.label : "Dashboard";
   }
@@ -74,23 +66,6 @@ export default function DashboardLayout({
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-          <Separator className="my-2" />
-          <SidebarMenu>
-            {adminNavItems.map((item) => (
-                 <SidebarMenuItem key={item.href}>
-                 <SidebarMenuButton
-                   asChild
-                   isActive={pathname === item.href}
-                   tooltip={item.label}
-                 >
-                   <Link href={item.href}>
-                     <item.icon />
-                     <span>{item.label}</span>
-                   </Link>
-                 </SidebarMenuButton>
-               </SidebarMenuItem>
             ))}
           </SidebarMenu>
         </SidebarContent>

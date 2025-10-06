@@ -6,24 +6,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Video } from "lucide-react";
+import { Video } from "lucide-react";
 
 export function QuickActions() {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Users className="size-5" /> Refer & Earn
-          </CardTitle>
-          <CardDescription>
-            Invite friends and earn 500 coins for each successful referral.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button className="w-full">Get referral link</Button>
-        </CardContent>
-      </Card>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
