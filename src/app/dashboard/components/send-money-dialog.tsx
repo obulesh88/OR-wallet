@@ -36,6 +36,7 @@ import {
 const formSchema = z.object({
   accountHolder: z.string().min(1, 'Account holder name is required'),
   accountNumber: z.string().min(1, 'Account number is required'),
+  ifscCode: z.string().min(1, 'IFSC code is required'),
   bankName: z.string().min(1, 'Bank name is required'),
   amount: z.coerce.number().positive('Amount must be positive'),
 });
@@ -65,6 +66,7 @@ export function SendMoneyDialog() {
     defaultValues: {
       accountHolder: '',
       accountNumber: '',
+      ifscCode: '',
       bankName: '',
       amount: 0,
     },
@@ -119,6 +121,19 @@ export function SendMoneyDialog() {
                   <FormLabel>Account Number</FormLabel>
                   <FormControl>
                     <Input placeholder="1234567890" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="ifscCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>IFSC Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="SBIN0001234" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
