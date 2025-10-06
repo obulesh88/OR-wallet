@@ -12,10 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Send } from 'lucide-react';
+import { Edit, Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { useEffect, useState } from 'react';
+import { SendMoneyDialog } from '../components/send-money-dialog';
 
 type BankDetails = {
   accountHolder: string;
@@ -28,6 +29,7 @@ export default function SendPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [recipient, setRecipient] = useState<BankDetails | null>(null);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     const savedBankDetails = localStorage.getItem('bankDetails');
@@ -46,9 +48,20 @@ export default function SendPage() {
       description: `Sending ${amount} coins.`,
     });
 
-    // Optionally, redirect after submission
     router.push('/dashboard');
   };
+
+  const handleDetailsUpdated = () => {
+    const savedBankDetails = localStorage.getItem('bankDetails');
+    if (savedBankDetails) {
+      setRecipient(JSON.parse(savedBankDetails));
+    }
+    setEditing(false);
+  }
+
+  if (editing) {
+    return <SendMoneyDialog onBankDetailsSubmit={handleDetailsUpdated} open={editing} onOpenChange={setEditing} isEditing />;
+  }
 
   return (
     <div className="flex justify-center items-center">
@@ -76,7 +89,12 @@ export default function SendPage() {
               </div>
               {recipient && (
                 <div className="p-4 bg-muted rounded-md text-sm space-y-2">
-                    <p className="font-semibold">Recipient Details:</p>
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold">Recipient Details:</p>
+                      <Button variant="ghost" size="icon" onClick={() => setEditing(true)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className='text-muted-foreground'>
                       <p>{recipient.accountHolder}</p>
                       <p>Ending in {recipient.accountNumber.slice(-4)}</p>

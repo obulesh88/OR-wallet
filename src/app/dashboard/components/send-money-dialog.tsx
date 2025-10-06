@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const formSchema = z.object({
   accountHolder: z.string().min(1, 'Account holder name is required'),
@@ -60,11 +60,18 @@ const indianBanks = [
 
 type SendMoneyDialogProps = {
   onBankDetailsSubmit: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  isEditing?: boolean;
 };
 
-export function SendMoneyDialog({ onBankDetailsSubmit }: SendMoneyDialogProps) {
+export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onOpenChange, isEditing = false }: SendMoneyDialogProps) {
   const { toast } = useToast();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const form = useForm<SendMoneyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,29 +82,46 @@ export function SendMoneyDialog({ onBankDetailsSubmit }: SendMoneyDialogProps) {
     },
   });
 
+  useEffect(() => {
+    if (isEditing || open) {
+      const savedBankDetails = localStorage.getItem('bankDetails');
+      if (savedBankDetails) {
+        form.reset(JSON.parse(savedBankDetails));
+      }
+    } else {
+      form.reset();
+    }
+  }, [isEditing, open, form]);
+
   const onSubmit = (data: SendMoneyFormValues) => {
     localStorage.setItem('bankDetails', JSON.stringify(data));
     toast({
-      title: 'Bank details saved',
+      title: isEditing ? 'Bank details updated' : 'Bank details saved',
       description: `Your bank account details have been saved successfully.`,
     });
     form.reset();
     onBankDetailsSubmit();
-    setOpen(false); // Close the dialog
+    setOpen(false);
   };
+  
+  const dialogTitle = isEditing ? 'Edit Bank Details' : 'Add Bank Details';
+  const dialogDescription = isEditing ? "Update the recipient's bank details." : "Enter the recipient's bank details to send coins.";
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Send className="mr-2" /> Send
-        </Button>
-      </DialogTrigger>
+      {!isEditing && (
+        <DialogTrigger asChild>
+          <Button>
+            <Send className="mr-2" /> Send
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Bank Details</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Enter the recipient&apos;s bank details to send coins.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -152,7 +176,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit }: SendMoneyDialogProps) {
                   <FormLabel>Bank Name</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
