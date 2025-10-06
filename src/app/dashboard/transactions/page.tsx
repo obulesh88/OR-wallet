@@ -80,7 +80,7 @@ export default function TransactionsPage() {
                   className={cn(
                     "text-right font-semibold",
                     transaction.amount > 0
-                      ? "text-green-400"
+                      ? "text-primary"
                       : "text-foreground"
                   )}
                 >

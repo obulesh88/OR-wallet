@@ -18,6 +18,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Copy, Users, Twitter, Facebook, MessageCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 const referrals = [
   {
@@ -150,7 +151,7 @@ export default function ReferralsPage() {
                             ? 'secondary'
                             : 'default'
                         }
-                        className={referral.status === 'Completed' ? 'bg-green-700/20 text-green-400 border-green-700/40 hover:bg-green-700/30' : ''}
+                        className={cn(referral.status === 'Completed' ? 'bg-green-700/20 text-green-400 border-green-700/40 hover:bg-green-700/30' : '')}
                       >
                         {referral.status}
                       </Badge>
