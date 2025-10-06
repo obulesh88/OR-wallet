@@ -15,10 +15,26 @@ import { useToast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
+import { useEffect, useState } from 'react';
+
+type BankDetails = {
+  accountHolder: string;
+  accountNumber: string;
+  bankName: string;
+  ifscCode: string;
+}
 
 export default function SendPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [recipient, setRecipient] = useState<BankDetails | null>(null);
+
+  useEffect(() => {
+    const savedBankDetails = localStorage.getItem('bankDetails');
+    if (savedBankDetails) {
+      setRecipient(JSON.parse(savedBankDetails));
+    }
+  }, []);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -58,14 +74,16 @@ export default function SendPage() {
                   required
                 />
               </div>
-              <div className="p-4 bg-muted rounded-md text-sm space-y-2">
-                  <p className="font-semibold">Recipient Details:</p>
-                  <div className='text-muted-foreground'>
-                    <p>John Doe</p>
-                    <p>XXXXXXXXXX1234</p>
-                    <p>State Bank of India (SBI)</p>
-                  </div>
-              </div>
+              {recipient && (
+                <div className="p-4 bg-muted rounded-md text-sm space-y-2">
+                    <p className="font-semibold">Recipient Details:</p>
+                    <div className='text-muted-foreground'>
+                      <p>{recipient.accountHolder}</p>
+                      <p>Ending in {recipient.accountNumber.slice(-4)}</p>
+                      <p>{recipient.bankName}</p>
+                    </div>
+                </div>
+              )}
               <div className="p-4 bg-muted rounded-md text-sm space-y-4">
                   <p className="font-semibold">Transaction Summary</p>
                   <div className='space-y-2 text-muted-foreground'>

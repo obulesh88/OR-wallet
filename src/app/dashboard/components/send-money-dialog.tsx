@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -77,7 +76,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit }: SendMoneyDialogProps) {
   });
 
   const onSubmit = (data: SendMoneyFormValues) => {
-    console.log(data);
+    localStorage.setItem('bankDetails', JSON.stringify(data));
     toast({
       title: 'Bank details saved',
       description: `Your bank account details have been saved successfully.`,

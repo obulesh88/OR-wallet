@@ -12,13 +12,21 @@ import {
 import { Coins, History, Send } from "lucide-react";
 import Link from "next/link";
 import { SendMoneyDialog } from "./send-money-dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function BalanceCard() {
   const balance = 12345.67;
   const [hasBankDetails, setHasBankDetails] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const savedBankDetails = localStorage.getItem('bankDetails');
+    if (savedBankDetails) {
+      setHasBankDetails(true);
+    }
+  }, []);
+
 
   const handleSendClick = () => {
     if (hasBankDetails) {
