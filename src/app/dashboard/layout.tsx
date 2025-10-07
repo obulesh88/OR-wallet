@@ -9,6 +9,7 @@ import {
   Settings,
   User as UserIcon,
   LogOut,
+  Landmark
 } from "lucide-react";
 
 import {
