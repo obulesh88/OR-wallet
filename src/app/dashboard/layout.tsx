@@ -80,7 +80,7 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2" data-testid="sidebar-header">
-            <Image src="/logo.png" alt="OR Wallet" width={24} height={24} />
+            <Image src="/logo.png" alt="OR Wallet" width={32} height={24} />
             <span className="font-semibold text-lg">OR Wallet</span>
           </div>
         </SidebarHeader>

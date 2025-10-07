@@ -68,9 +68,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
         <div className="flex justify-center items-center mb-4">
-            <Image src="/logo.png" alt="OR Wallet" width={48} height={48} />
+            <Image src="/logo.png" alt="OR Wallet" width={64} height={48} />
           </div>
           <CardTitle>{isSignUp ? 'Create an Account' : 'Welcome to OR Wallet'}</CardTitle>
+
           <CardDescription>
             {isSignUp ? 'Enter your details to get started.' : 'Sign in to access your wallet'}
           </CardDescription>
