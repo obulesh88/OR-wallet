@@ -28,7 +28,7 @@ import {
 import { useUser } from "@/firebase";
 import { useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/componentsui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { getAuth, signOut } from "firebase/auth";
 
@@ -79,7 +79,7 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2" data-testid="sidebar-header">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg">
+            <div className="font-bold text-lg text-red-500">
               OR
             </div>
             <span className="font-semibold text-lg">OR Wallet</span>

@@ -67,7 +67,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
         <div className="flex justify-center items-center mb-4">
-            <div className="flex h-12 w-24 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-2xl">
+            <div className="font-bold text-2xl text-red-500">
               OR
             </div>
           </div>
