@@ -18,7 +18,6 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import Image from 'next/image';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -68,7 +67,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
         <div className="flex justify-center items-center mb-4">
-            <Image src="/logo.png" alt="OR Wallet" width={64} height={48} />
+            <div className="flex h-12 w-24 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-2xl">
+              OR
+            </div>
           </div>
           <CardTitle>{isSignUp ? 'Create an Account' : 'Welcome to OR Wallet'}</CardTitle>
 

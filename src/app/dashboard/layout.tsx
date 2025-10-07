@@ -31,7 +31,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { getAuth, signOut } from "firebase/auth";
-import Image from "next/image";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -80,7 +79,9 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2" data-testid="sidebar-header">
-            <Image src="/logo.png" alt="OR Wallet" width={32} height={24} />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-lg">
+              OR
+            </div>
             <span className="font-semibold text-lg">OR Wallet</span>
           </div>
         </SidebarHeader>
