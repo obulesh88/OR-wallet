@@ -80,7 +80,7 @@ export default function DashboardLayout({
         <SidebarHeader>
           <div className="flex items-center gap-2" data-testid="sidebar-header">
             <Logo className="w-8 h-8" />
-            <span className="font-semibold text-lg">CoinCraft</span>
+            <span className="font-semibold text-lg">OR Wallet</span>
           </div>
         </SidebarHeader>
         <SidebarContent>

@@ -65,7 +65,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <Logo className="h-12 w-12" />
           </div>
-          <CardTitle>Welcome to CoinCraft</CardTitle>
+          <CardTitle>Welcome to OR Wallet</CardTitle>
           <CardDescription>Sign in to access your wallet</CardDescription>
         </CardHeader>
         <CardContent>

@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 export const metadata: Metadata = {
-  title: "OraCoin Wallet",
+  title: "OR Wallet",
   description: "Manage and convert your digital Ora Coins with ease.",
 };
 
