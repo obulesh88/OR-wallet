@@ -9,7 +9,8 @@ import {
   Settings,
   User as UserIcon,
   LogOut,
-  Landmark
+  Landmark,
+  Loader2
 } from "lucide-react";
 
 import {
@@ -24,7 +25,6 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
-import { Logo } from "@/components/logo";
 import { useUser } from "@/firebase";
 import { useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -69,7 +69,7 @@ export default function DashboardLayout({
   if (isLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Logo className="w-16 h-16 animate-pulse" />
+        <Loader2 className="w-16 h-16 animate-spin text-primary" />
       </div>
     );
   }
@@ -79,7 +79,6 @@ export default function DashboardLayout({
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2" data-testid="sidebar-header">
-            <Logo className="w-8 h-8" />
             <span className="font-semibold text-lg">OR Wallet</span>
           </div>
         </SidebarHeader>

@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Logo } from '@/components/logo';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -67,9 +66,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Logo className="h-12 w-12" />
-          </div>
           <CardTitle>{isSignUp ? 'Create an Account' : 'Welcome to OR Wallet'}</CardTitle>
           <CardDescription>
             {isSignUp ? 'Enter your details to get started.' : 'Sign in to access your wallet'}
