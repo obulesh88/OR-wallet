@@ -14,16 +14,27 @@ export function UserAddressCard() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [address, setAddress] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     if (user && firestore) {
       const userDocRef = doc(firestore, "users", user.uid);
-      const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        if (doc.exists()) {
-          setAddress(doc.data().address);
+      const unsubscribe = onSnapshot(userDocRef, 
+        (doc) => {
+          if (doc.exists()) {
+            setAddress(doc.data().address);
+            setError(null);
+          } else {
+            setError("User data not found.");
+          }
+        },
+        (err) => {
+          console.error("Firestore snapshot error:", err);
+          setError("Could not fetch address due to a permission error.");
+          // You could implement more specific error handling here if needed
         }
-      });
+      );
       return () => unsubscribe();
     }
   }, [user, firestore]);
@@ -47,7 +58,9 @@ export function UserAddressCard() {
         <Wallet className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        {address ? (
+        {error ? (
+          <p className="text-sm text-destructive">{error}</p>
+        ) : address ? (
           <div className="flex items-center justify-between">
             <p className="font-mono text-sm sm:text-base break-all">{address}</p>
             <Button
@@ -55,6 +68,7 @@ export function UserAddressCard() {
               size="icon"
               onClick={handleCopy}
               className={cn("ml-2", isCopied && "text-green-500")}
+              disabled={!address}
             >
               <Copy className="h-4 w-4" />
             </Button>
