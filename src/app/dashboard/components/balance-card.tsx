@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { IndianRupee, History } from "lucide-react";
+import { IndianRupee, History, Send, Coins } from "lucide-react";
 import Link from "next/link";
 import { SendMoneyDialog } from "./send-money-dialog";
 import { useState } from "react";
@@ -45,10 +45,31 @@ export function BalanceCard() {
         }} />
         <Button variant="secondary" asChild>
           <Link href="/dashboard/transactions">
-            <History className="mr-2" /> Wallet History
+            <History className="mr-2 h-4 w-4" /> History
           </Link>
         </Button>
       </CardFooter>
     </Card>
   );
+}
+
+export function OraBalanceCard() {
+  const oraBalance = 0;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">Your ORA Balance</CardTitle>
+        <Coins className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-4xl font-bold tracking-tighter">
+        {oraBalance.toLocaleString()}
+        </div>
+        <CardDescription className="text-xs text-muted-foreground mt-1">
+          ORA Coins
+        </CardDescription>
+      </CardContent>
+    </Card>
+  )
 }
