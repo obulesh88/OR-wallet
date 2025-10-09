@@ -1,6 +1,5 @@
 import { BalanceCard } from "./components/balance-card";
 import { QuickActions } from "./components/quick-actions";
-import { TransactionHistory } from "./components/transaction-history";
 
 export default function DashboardPage() {
   return (
@@ -10,7 +9,6 @@ export default function DashboardPage() {
       </div>
       <div className="space-y-6">
         <QuickActions />
-        <TransactionHistory />
       </div>
     </div>
   );
