@@ -83,7 +83,7 @@ export function UserAddressCard() {
           <p className="text-sm text-muted-foreground">Generating address...</p>
         )}
         <CardDescription className="text-xs text-muted-foreground mt-1">
-          Share this address to receive ORA coins.
+          This is only used to recieve ora coins
         </CardDescription>
       </CardContent>
     </Card>
