@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { doc, onSnapshot } from "firebase/firestore";
 import { Copy, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 export function UserAddressCard() {
   const { user } = useUser();
@@ -29,10 +31,14 @@ export function UserAddressCard() {
             setError("User data not found.");
           }
         },
-        (err) => {
-          console.error("Firestore snapshot error:", err);
+        async (err) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'get',
+          } satisfies SecurityRuleContext);
+  
+          errorEmitter.emit('permission-error', permissionError);
           setError("Could not fetch address due to a permission error.");
-          // You could implement more specific error handling here if needed
         }
       );
       return () => unsubscribe();

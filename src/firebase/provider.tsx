@@ -9,6 +9,7 @@ import {
   useContext,
   PropsWithChildren,
 } from 'react';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export interface FirebaseContextValue {
   app: FirebaseApp;
@@ -28,6 +29,7 @@ export function FirebaseProvider({ value, children }: FirebaseProviderProps) {
   return (
     <FirebaseContext.Provider value={value}>
       {children}
+      <FirebaseErrorListener />
     </FirebaseContext.Provider>
   );
 }
