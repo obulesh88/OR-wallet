@@ -9,35 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Coins, History, Send } from "lucide-react";
+import { Coins, History } from "lucide-react";
 import Link from "next/link";
-import { SendMoneyDialog } from "./send-money-dialog";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export function BalanceCard() {
   const balance = 0;
   const rupeeBalance = balance / 100;
-  const [hasBankDetails, setHasBankDetails] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    const savedBankDetails = localStorage.getItem('bankDetails');
-    if (savedBankDetails) {
-      setHasBankDetails(true);
-    }
-  }, []);
-
-
-  const handleSendClick = () => {
-    if (hasBankDetails) {
-      router.push('/dashboard/send');
-    }
-  };
-
-  const onBankDetailsSubmit = () => {
-    setHasBankDetails(true);
-  };
 
   return (
     <Card>
@@ -65,13 +42,6 @@ export function BalanceCard() {
             <History className="mr-2" /> Wallet History
           </Link>
         </Button>
-        {hasBankDetails ? (
-           <Button onClick={handleSendClick}>
-            <Send className="mr-2" /> Send
-          </Button>
-        ) : (
-          <SendMoneyDialog onBankDetailsSubmit={onBankDetailsSubmit} />
-        )}
       </CardFooter>
     </Card>
   );
