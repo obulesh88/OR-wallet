@@ -19,6 +19,8 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -61,10 +63,8 @@ export default function LoginPage() {
 
         // Generate a unique address
         const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
-
-        // Create user document in Firestore
         const userRef = doc(firestore, 'users', user.uid);
-        await setDoc(userRef, {
+        const userData = {
           uid: user.uid,
           email: user.email,
           displayName: data.name,
@@ -72,6 +72,17 @@ export default function LoginPage() {
           balance: 0,
           oraBalance: 100, // Starting bonus
           address: uniqueAddress,
+        };
+        
+        // Create user document in Firestore
+        setDoc(userRef, userData).catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'create',
+            requestResourceData: userData,
+          } satisfies SecurityRuleContext);
+  
+          errorEmitter.emit('permission-error', permissionError);
         });
 
         toast({
