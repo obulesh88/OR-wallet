@@ -11,13 +11,10 @@ import {
 } from "@/components/ui/card";
 import { IndianRupee, History, Send, Coins } from "lucide-react";
 import Link from "next/link";
-import { SendMoneyDialog } from "./send-money-dialog";
-import { useState } from "react";
 
 export function BalanceCard() {
   const balance = 0;
   const rupeeBalance = balance / 100;
-  const [_, setRecipient] = useState(null);
 
   return (
     <Card>
@@ -37,12 +34,11 @@ export function BalanceCard() {
         </CardDescription>
       </CardContent>
       <CardFooter className="flex gap-2">
-        <SendMoneyDialog onBankDetailsSubmit={() => {
-           const savedBankDetails = localStorage.getItem('bankDetails');
-           if (savedBankDetails) {
-             setRecipient(JSON.parse(savedBankDetails));
-           }
-        }} />
+        <Button asChild>
+            <Link href="/dashboard/send">
+                <Send className="mr-2 h-4 w-4" /> Send
+            </Link>
+        </Button>
         <Button variant="secondary" asChild>
           <Link href="/dashboard/transactions">
             <History className="mr-2 h-4 w-4" /> History

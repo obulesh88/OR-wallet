@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   accountHolder: z.string().min(1, 'Account holder name is required'),
@@ -67,10 +68,17 @@ type SendMoneyDialogProps = {
 
 export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onOpenChange, isEditing = false }: SendMoneyDialogProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [internalOpen, setInternalOpen] = useState(false);
 
   const open = controlledOpen ?? internalOpen;
-  const setOpen = onOpenChange ?? setInternalOpen;
+  const setOpen = (newOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newOpen);
+    } else {
+      setInternalOpen(newOpen);
+    }
+  };
 
   const form = useForm<SendMoneyFormValues>({
     resolver: zodResolver(formSchema),
@@ -83,15 +91,15 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onO
   });
 
   useEffect(() => {
-    if (isEditing || open) {
+    if (open) {
       const savedBankDetails = localStorage.getItem('bankDetails');
       if (savedBankDetails) {
         form.reset(JSON.parse(savedBankDetails));
+      } else {
+        form.reset();
       }
-    } else {
-      form.reset();
     }
-  }, [isEditing, open, form]);
+  }, [open, form]);
 
   const onSubmit = (data: SendMoneyFormValues) => {
     localStorage.setItem('bankDetails', JSON.stringify(data));
@@ -105,18 +113,11 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onO
   };
   
   const dialogTitle = isEditing ? 'Edit Bank Details' : 'Add Bank Details';
-  const dialogDescription = isEditing ? "Update the recipient's bank details." : "Enter the recipient's bank details to send Ora Coins.";
+  const dialogDescription = isEditing ? "Update the recipient's bank details." : "Enter the recipient's bank details to send Ora Coins. These details will be saved for future use.";
 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {!isEditing && (
-        <DialogTrigger asChild>
-          <Button>
-            <Send className="mr-2" /> Send
-          </Button>
-        </DialogTrigger>
-      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
