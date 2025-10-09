@@ -41,7 +41,7 @@ export const transactions: Transaction[] = [
   {
     id: "txn_4",
     type: "withdraw",
-    description: "Withdrawal to BTC Wallet",
+    description: "Withdrawal to Bank Account",
     amount: 0,
     date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
     status: "Pending",
