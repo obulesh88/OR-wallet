@@ -5,17 +5,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { transactions } from "@/lib/data";
-import { cn } from "@/lib/utils";
 import { ArrowRightLeft } from "lucide-react";
 
 export default function TransactionsPage() {
@@ -31,66 +20,9 @@ export default function TransactionsPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Description</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-muted rounded-full">
-                      <transaction.icon className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    {transaction.description}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="capitalize">{transaction.type}</Badge>
-                </TableCell>
-                <TableCell>
-                  {new Date(transaction.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      transaction.status === "Completed"
-                        ? "secondary"
-                        : transaction.status === "Pending"
-                        ? "default"
-                        : "destructive"
-                    }
-                    className={cn(transaction.status === "Completed" && "bg-green-700/20 text-green-400 border-green-700/40 hover:bg-green-700/30" )}
-                  >
-                    {transaction.status}
-                  </Badge>
-                </TableCell>
-                <TableCell
-                  className={cn(
-                    "text-right font-semibold",
-                    transaction.amount > 0
-                      ? "text-primary"
-                      : "text-foreground"
-                  )}
-                >
-                  {transaction.amount > 0 ? "+" : ""}
-                  {transaction.amount.toLocaleString()}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="flex flex-col items-center justify-center text-center gap-4 p-12">
+            <p className="text-muted-foreground">Your transactions will appear here.</p>
+        </div>
       </CardContent>
     </Card>
   );
