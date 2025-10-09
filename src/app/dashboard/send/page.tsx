@@ -32,9 +32,10 @@ export default function SendPage() {
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState(0);
 
+  const conversionRate = 1 / 1000; // 1 ORA = 0.001 INR
   const fee = amount > 0 ? 20 : 0;
   const total = amount + fee;
-  const rupeeAmount = total / 100;
+  const rupeeAmount = total * conversionRate;
 
   useEffect(() => {
     const savedBankDetails = localStorage.getItem('bankDetails');

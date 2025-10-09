@@ -1,9 +1,17 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Coins, IndianRupee, Repeat } from "lucide-react";
+import { useState } from "react";
 
 export function ConvertCard() {
+  const [oraAmount, setOraAmount] = useState<number | ''>('');
+  const conversionRate = 1 / 1000; // 1 ORA = 0.001 INR
+
+  const inrAmount = oraAmount !== '' ? oraAmount * conversionRate : 0;
+
   return (
     <Card>
       <CardHeader>
@@ -21,7 +29,13 @@ export function ConvertCard() {
                         <Coins className="w-6 h-6 text-primary" />
                         <span className="font-bold text-lg">ORA</span>
                     </div>
-                    <Input type="number" placeholder="0.00" className="text-right text-lg font-bold border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto" />
+                    <Input 
+                      type="number" 
+                      placeholder="0" 
+                      className="text-right text-lg font-bold border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto"
+                      value={oraAmount}
+                      onChange={(e) => setOraAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                    />
                 </div>
             </div>
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -38,13 +52,15 @@ export function ConvertCard() {
                         <IndianRupee className="w-6 h-6 text-green-500" />
                         <span className="font-bold text-lg">INR</span>
                     </div>
-                    <div className="text-right text-lg font-bold text-muted-foreground">--</div>
+                    <div className="text-right text-lg font-bold">
+                      {inrAmount > 0 ? `₹${inrAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 3 })}` : '--'}
+                    </div>
                 </div>
             </div>
         </div>
 
         <div className="text-sm text-center text-muted-foreground">
-            1 ORA ≈ ₹0.01
+            1000 ORA ≈ ₹1
         </div>
 
         <Button size="lg" className="w-full">
