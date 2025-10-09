@@ -1,6 +1,7 @@
 import { BalanceCard, OraBalanceCard } from "./components/balance-card";
 import { ConvertCard } from "./components/convert-card";
 import { QuickActions } from "./components/quick-actions";
+import { UserAddressCard } from "./components/user-address-card";
 
 export default function DashboardPage() {
   return (
@@ -9,6 +10,9 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <BalanceCard />
           <OraBalanceCard />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <UserAddressCard />
         </div>
         <ConvertCard />
       </div>
