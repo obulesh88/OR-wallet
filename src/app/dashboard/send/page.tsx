@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Send } from 'lucide-react';
+import { Edit, Send, IndianRupee } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { useEffect, useState } from 'react';
@@ -32,10 +32,11 @@ export default function SendPage() {
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState(0);
 
-  const conversionRate = 1 / 1000; // 1 ORA = 0.001 INR
-  const fee = amount > 0 ? 20 : 0;
-  const total = amount + fee;
-  const rupeeAmount = total * conversionRate;
+  const conversionRate = 1000; // 1 INR = 1000 ORA
+  const fee = 0; // Assuming no fee for now
+  const oraAmount = amount * conversionRate;
+  const totalOraAmount = oraAmount + fee;
+  
 
   useEffect(() => {
     const savedBankDetails = localStorage.getItem('bankDetails');
@@ -60,7 +61,7 @@ export default function SendPage() {
     
     toast({
       title: 'Transfer initiated',
-      description: `Sending ${amount} Ora Coins.`,
+      description: `Sending ₹${amount}. This will debit ${totalOraAmount} ORA coins.`,
     });
 
     router.push('/dashboard');
@@ -96,24 +97,28 @@ export default function SendPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Send /> Send Ora Coins
+                <Send /> Send Money
               </CardTitle>
               <CardDescription>
-                Your bank details are saved. Enter the amount to send.
+                Your bank details are saved. Enter the amount to send in INR.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount</Label>
-                  <Input
-                    id="amount"
-                    name="amount"
-                    type="number"
-                    placeholder="Enter amount of Ora Coins"
-                    required
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                  />
+                  <Label htmlFor="amount">Amount (INR)</Label>
+                  <div className="relative">
+                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      placeholder="Enter amount in INR"
+                      required
+                      className="pl-8"
+                      onChange={(e) => setAmount(Number(e.target.value))}
+                    />
+                  </div>
                 </div>
                 {recipient && (
                   <div className="p-4 bg-muted rounded-md text-sm space-y-2">
@@ -133,27 +138,19 @@ export default function SendPage() {
                 <div className="p-4 bg-muted rounded-md text-sm space-y-4">
                     <p className="font-semibold">Transaction Summary</p>
                     <div className='space-y-2 text-muted-foreground'>
-                      <div className='flex justify-between'>
-                        <span>Amount</span>
-                        <span>{amount.toLocaleString()}</span>
-                      </div>
-                       <div className='flex justify-between'>
-                        <span>Fee</span>
-                        <span>{fee.toLocaleString()}</span>
-                      </div>
-                      <Separator className="bg-border/50" />
-                       <div className='flex justify-between font-medium text-foreground'>
-                        <span>Total Ora Coins</span>
-                        <span>{total.toLocaleString()}</span>
-                      </div>
                       <div className='flex justify-between font-medium text-foreground'>
-                        <span>Total Rupees</span>
+                        <span>Amount to Send</span>
                         <span>
-                          ₹{rupeeAmount.toLocaleString('en-IN', {
+                          ₹{amount.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
                         </span>
+                      </div>
+                      <Separator className="bg-border/50" />
+                       <div className='flex justify-between font-medium text-foreground'>
+                        <span>Total Ora Coins Debited</span>
+                        <span>{totalOraAmount.toLocaleString()}</span>
                       </div>
                     </div>
                 </div>
