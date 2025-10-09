@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function BalanceCard() {
-  const balance = 12345.67;
+  const balance = 0;
   const rupeeBalance = balance / 100;
   const [hasBankDetails, setHasBankDetails] = useState(false);
   const router = useRouter();
