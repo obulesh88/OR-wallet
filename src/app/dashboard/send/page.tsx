@@ -149,7 +149,7 @@ export default function SendPage() {
                       </div>
                       <Separator className="bg-border/50" />
                        <div className='flex justify-between font-medium text-foreground'>
-                        <span>Total Ora Coins Debited</span>
+                        <span>Deduction</span>
                         <span>{totalOraAmount.toLocaleString()}</span>
                       </div>
                     </div>
