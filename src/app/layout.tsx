@@ -4,9 +4,28 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 export const metadata: Metadata = {
-  title: "OR Wallet",
-  description: "Manage and convert your digital Ora Coins with ease.",
+  title: "OR Wallet - Fast and Secure Digital Wallet",
+  description: "OR Wallet is a simple, secure wallet for sending, receiving, and managing digital coins instantly.",
+  keywords: "OR Wallet, crypto wallet, coin wallet, INR wallet, earn wallet, money transfer app, finance app",
+  authors: [{ name: "OR Wallet Team" }],
+  robots: "index, follow",
+  themeColor: "#2196f3",
+  alternates: {
+    canonical: "https://orwallet.com",
+  },
+  openGraph: {
+    title: "OR Wallet - Fast and Secure Digital Wallet",
+    description: "Manage your balance, claim rewards, and withdraw easily using OR Wallet.",
+    url: "https://orwallet.com",
+    type: "website",
+    images: [
+      {
+        url: "https://orwallet.com/logo.png",
+      },
+    ],
+  },
 };
+
 
 export default function RootLayout({
   children,
