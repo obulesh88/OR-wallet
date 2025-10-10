@@ -6,7 +6,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { doc, onSnapshot } from "firebase/firestore";
-import { Copy, Wallet } from "lucide-react";
+import { Copy, KeyRound, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
@@ -16,11 +16,16 @@ export function UserAddressCard() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [address, setAddress] = useState<string | null>(null);
+  const [secretCode, setSecretCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     if (user && firestore) {
+      // Generate a new secret code for the session
+      const newSecretCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      setSecretCode(newSecretCode);
+      
       const userDocRef = doc(firestore, "users", user.uid);
       const unsubscribe = onSnapshot(userDocRef, 
         (doc) => {
@@ -67,24 +72,40 @@ export function UserAddressCard() {
         {error ? (
           <p className="text-sm text-destructive">{error}</p>
         ) : address ? (
-          <div className="flex items-center justify-between">
-            <p className="font-mono text-sm sm:text-base break-all">{address}</p>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCopy}
-              className={cn("ml-2", isCopied && "text-green-500")}
-              disabled={!address}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between">
+                <p className="font-mono text-sm sm:text-base break-all">{address}</p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCopy}
+                  className={cn("ml-2", isCopied && "text-green-500")}
+                  disabled={!address}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                This is only used to recieve ora coins
+              </CardDescription>
+            </div>
+            {secretCode && (
+              <div className="pt-4 border-t border-border">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 mb-2">
+                  <KeyRound className="h-4 w-4 text-muted-foreground" />
+                  Your Secret Code for this Session
+                </CardTitle>
+                <p className="font-mono text-sm sm:text-base break-all">{secretCode}</p>
+                 <CardDescription className="text-xs text-muted-foreground mt-1">
+                  This code changes every time you log in.
+                </CardDescription>
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">Generating address...</p>
         )}
-        <CardDescription className="text-xs text-muted-foreground mt-1">
-          This is only used to recieve ora coins
-        </CardDescription>
       </CardContent>
     </Card>
   );
