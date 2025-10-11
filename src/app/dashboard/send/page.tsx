@@ -35,9 +35,9 @@ export default function SendPage() {
   const conversionRate = 1000; // 1 INR = 1000 ORA
   const feePercentage = 0.02; // 2% fee
   
-  const oraAmount = amount * conversionRate;
-  const feeInOra = oraAmount * feePercentage;
-  const totalOraAmount = oraAmount + feeInOra;
+  const feeInInr = amount * feePercentage;
+  const amountRecipientReceives = amount - feeInInr;
+  const totalOraAmount = amount * conversionRate;
   
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function SendPage() {
     
     toast({
       title: 'Transfer initiated',
-      description: `Sending ₹${amount}. This will debit ${totalOraAmount} ORA coins.`,
+      description: `Sending ₹${amountRecipientReceives.toFixed(2)}. This will debit ${totalOraAmount.toLocaleString()} ORA coins.`,
     });
 
     router.push('/dashboard');
@@ -140,7 +140,7 @@ export default function SendPage() {
                 <div className="p-4 bg-muted rounded-md text-sm space-y-4">
                     <p className="font-semibold">Transaction Summary</p>
                     <div className='space-y-2 text-muted-foreground'>
-                      <div className='flex justify-between font-medium text-foreground'>
+                      <div className='flex justify-between'>
                         <span>Amount to Send</span>
                         <span>
                           ₹{amount.toLocaleString('en-IN', {
@@ -152,13 +152,26 @@ export default function SendPage() {
                        <div className='flex justify-between'>
                         <span>Fee (2%)</span>
                         <span>
-                          {feeInOra.toLocaleString()} ORA
+                          - ₹{feeInInr.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                      <Separator className="bg-border/50" />
+                       <div className='flex justify-between font-medium text-foreground'>
+                        <span>Recipient gets</span>
+                        <span>
+                          ₹{amountRecipientReceives.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </span>
                       </div>
                       <Separator className="bg-border/50" />
                        <div className='flex justify-between font-medium text-foreground'>
                         <span>Deduction</span>
-                        <span>{totalOraAmount.toLocaleString()}</span>
+                        <span>{totalOraAmount.toLocaleString()} ORA</span>
                       </div>
                     </div>
                 </div>
