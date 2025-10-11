@@ -33,9 +33,11 @@ export default function SendPage() {
   const [amount, setAmount] = useState(0);
 
   const conversionRate = 1000; // 1 INR = 1000 ORA
-  const fee = 0; // Assuming no fee for now
+  const feePercentage = 0.02; // 2% fee
+  
   const oraAmount = amount * conversionRate;
-  const totalOraAmount = oraAmount + fee;
+  const feeInOra = oraAmount * feePercentage;
+  const totalOraAmount = oraAmount + feeInOra;
   
 
   useEffect(() => {
@@ -145,6 +147,12 @@ export default function SendPage() {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
+                        </span>
+                      </div>
+                       <div className='flex justify-between'>
+                        <span>Fee (2%)</span>
+                        <span>
+                          {feeInOra.toLocaleString()} ORA
                         </span>
                       </div>
                       <Separator className="bg-border/50" />
