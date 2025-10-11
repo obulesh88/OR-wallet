@@ -17,6 +17,8 @@ import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { useEffect, useState } from 'react';
 import { SendMoneyDialog } from '../components/send-money-dialog';
+import { useFirestore, useUser } from '@/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 type BankDetails = {
   accountHolder: string;
@@ -28,9 +30,13 @@ type BankDetails = {
 export default function SendPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useUser();
+  const firestore = useFirestore();
+
   const [recipient, setRecipient] = useState<BankDetails | null>(null);
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState(0);
+  const [oraBalance, setOraBalance] = useState(0);
 
   const conversionRate = 1000; // 1 INR = 1000 ORA
   const feePercentage = 0.02; // 2% fee
@@ -39,6 +45,19 @@ export default function SendPage() {
   const amountRecipientReceives = amount - feeInInr;
   const totalOraAmount = amount * conversionRate;
   
+  const hasSufficientBalance = oraBalance >= totalOraAmount;
+
+  useEffect(() => {
+    if (user && firestore) {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+          setOraBalance(doc.data().oraBalance || 0);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user, firestore]);
 
   useEffect(() => {
     const savedBankDetails = localStorage.getItem('bankDetails');
@@ -57,6 +76,15 @@ export default function SendPage() {
         variant: 'destructive',
         title: 'Invalid amount',
         description: 'Please enter an amount greater than 0.',
+      });
+      return;
+    }
+    
+    if (!hasSufficientBalance) {
+      toast({
+        variant: 'destructive',
+        title: 'Insufficient Balance',
+        description: 'You do not have enough ORA coins for this transaction.',
       });
       return;
     }
@@ -108,7 +136,12 @@ export default function SendPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (INR)</Label>
+                  <div className="flex justify-between">
+                    <Label htmlFor="amount">Amount (INR)</Label>
+                    <span className='text-sm text-muted-foreground'>
+                      Balance: {oraBalance.toLocaleString()} ORA
+                    </span>
+                  </div>
                   <div className="relative">
                     <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -121,6 +154,11 @@ export default function SendPage() {
                       onChange={(e) => setAmount(Number(e.target.value))}
                     />
                   </div>
+                   {amount > 0 && !hasSufficientBalance && (
+                    <p className="text-sm text-destructive">
+                      Insufficient balance.
+                    </p>
+                  )}
                 </div>
                 {recipient && (
                   <div className="p-4 bg-muted rounded-md text-sm space-y-2">
@@ -178,7 +216,7 @@ export default function SendPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" disabled={!hasSufficientBalance || amount <= 0}>
                 Confirm & Send
               </Button>
             </CardFooter>
