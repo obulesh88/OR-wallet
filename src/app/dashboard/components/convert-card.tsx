@@ -7,7 +7,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useToast } from "@/hooks/use-toast";
-import { collection, addDoc, doc, runTransaction, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { ArrowRight, Coins, IndianRupee, Repeat } from "lucide-react";
 import { useEffect, useState } from "react";
 
