@@ -9,11 +9,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useFirestore, useUser } from "@/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 import { IndianRupee, History, Send, Coins } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export function BalanceCard() {
-  const balance = 0;
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [balance, setBalance] = useState(0);
+
+  useEffect(() => {
+    if (user && firestore) {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+          setBalance(doc.data().balance || 0);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user, firestore]);
+
   const rupeeBalance = balance / 100;
 
   return (
@@ -50,7 +68,21 @@ export function BalanceCard() {
 }
 
 export function OraBalanceCard() {
-  const oraBalance = 0;
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const [oraBalance, setOraBalance] = useState(0);
+
+  useEffect(() => {
+    if (user && firestore) {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const unsubscribe = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+          setOraBalance(doc.data().oraBalance || 0);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user, firestore]);
 
   return (
     <Card>

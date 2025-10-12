@@ -75,7 +75,7 @@ export default function LoginPage() {
         };
         
         // Create user document in Firestore
-        setDoc(userRef, userData).catch(async (serverError) => {
+        setDoc(userRef, userData, { merge: true }).catch(async (serverError) => {
           const permissionError = new FirestorePermissionError({
             path: userRef.path,
             operation: 'create',

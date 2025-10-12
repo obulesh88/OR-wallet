@@ -1,59 +1,21 @@
-import { Coins, Gift, ShoppingBag, Users } from "lucide-react";
+import { Coins, Gift, ShoppingBag, Landmark } from "lucide-react";
+import { type Timestamp } from "firebase/firestore";
 
 export type Transaction = {
   id: string;
-  type: "earn" | "withdraw" | "convert";
+  type: "earn" | "withdraw" | "convert" | "send";
   description: string;
   amount: number;
-  date: string;
+  date: Timestamp | string;
   status: "Completed" | "Pending" | "Failed";
   icon: React.ElementType;
+  inrAmount?: number;
 };
 
-export const transactions: Transaction[] = [
-  {
-    id: "txn_1",
-    type: "earn",
-    description: "Daily login bonus",
-    amount: 0,
-    date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "Completed",
-    icon: Coins,
-  },
-  {
-    id: "txn_2",
-    type: "convert",
-    description: "Converted to Amazon Gift Card",
-    amount: 0,
-    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "Completed",
-    icon: Gift,
-  },
-  {
-    id: "txn_3",
-    type: "earn",
-    description: "Referral bonus from @johndoe",
-    amount: 0,
-    date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "Completed",
-    icon: Users,
-  },
-  {
-    id: "txn_4",
-    type: "withdraw",
-    description: "Withdrawal to Bank Account",
-    amount: 0,
-    date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "Pending",
-    icon: ShoppingBag,
-  },
-  {
-    id: "txn_5",
-    type: "earn",
-    description: "Watched a rewarded ad",
-    amount: 0,
-    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "Completed",
-    icon: Coins,
-  },
-];
+export const transactionIcons = {
+    earn: Coins,
+    withdraw: Landmark,
+    convert: Gift,
+    send: ShoppingBag,
+    default: Coins,
+};
