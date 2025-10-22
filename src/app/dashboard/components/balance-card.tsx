@@ -14,6 +14,8 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { IndianRupee, History, Send, Coins } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 export function BalanceCard() {
   const { user } = useUser();
@@ -23,11 +25,20 @@ export function BalanceCard() {
   useEffect(() => {
     if (user && firestore) {
       const userDocRef = doc(firestore, 'users', user.uid);
-      const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        if (doc.exists()) {
-          setBalance(doc.data().balance || 0);
+      const unsubscribe = onSnapshot(userDocRef, 
+        (doc) => {
+          if (doc.exists()) {
+            setBalance(doc.data().balance || 0);
+          }
+        },
+        async (err) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'get',
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
         }
-      });
+      );
       return () => unsubscribe();
     }
   }, [user, firestore]);
@@ -75,11 +86,20 @@ export function OraBalanceCard() {
   useEffect(() => {
     if (user && firestore) {
       const userDocRef = doc(firestore, 'users', user.uid);
-      const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        if (doc.exists()) {
-          setOraBalance(doc.data().oraBalance || 0);
+      const unsubscribe = onSnapshot(userDocRef, 
+        (doc) => {
+          if (doc.exists()) {
+            setOraBalance(doc.data().oraBalance || 0);
+          }
+        },
+        async (err) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'get',
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
         }
-      });
+      );
       return () => unsubscribe();
     }
   }, [user, firestore]);

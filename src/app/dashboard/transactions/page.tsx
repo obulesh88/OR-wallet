@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 
 function formatTransactionDate(date: Timestamp | string | Date): string {
@@ -58,17 +60,24 @@ export default function TransactionsPage() {
       const transColRef = collection(firestore, "users", user.uid, "transactions");
       const q = query(transColRef, orderBy("date", "desc"));
       
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const userTransactions = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as Transaction));
-        setTransactions(userTransactions);
-        setLoading(false);
-      }, (error) => {
-          console.error("Error fetching transactions: ", error);
+      const unsubscribe = onSnapshot(q, 
+        (snapshot) => {
+          const userTransactions = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+          } as Transaction));
+          setTransactions(userTransactions);
           setLoading(false);
-      });
+        }, 
+        (error) => {
+            const permissionError = new FirestorePermissionError({
+                path: transColRef.path,
+                operation: 'list',
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+            setLoading(false);
+        }
+      );
 
       return () => unsubscribe();
     }

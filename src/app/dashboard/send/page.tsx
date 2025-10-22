@@ -20,7 +20,7 @@ import { SendMoneyDialog } from '../components/send-money-dialog';
 import { useFirestore, useUser } from '@/firebase';
 import { doc, onSnapshot, runTransaction, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 type BankDetails = {
   accountHolder: string;
@@ -54,11 +54,20 @@ export default function SendPage() {
   useEffect(() => {
     if (user && firestore) {
       const userDocRef = doc(firestore, 'users', user.uid);
-      const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        if (doc.exists()) {
-          setOraBalance(doc.data().oraBalance || 0);
+      const unsubscribe = onSnapshot(userDocRef, 
+        (doc) => {
+          if (doc.exists()) {
+            setOraBalance(doc.data().oraBalance || 0);
+          }
+        },
+        async (err) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'get',
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
         }
-      });
+      );
       return () => unsubscribe();
     }
   }, [user, firestore]);

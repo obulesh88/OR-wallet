@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useFirestore, useUser } from "@/firebase";
 import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import { useToast } from "@/hooks/use-toast";
 import { collection, addDoc, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { ArrowRight, Coins, IndianRupee, Repeat } from "lucide-react";
@@ -24,11 +24,20 @@ export function ConvertCard() {
   useEffect(() => {
     if (user && firestore) {
       const userDocRef = doc(firestore, 'users', user.uid);
-      const unsubscribe = onSnapshot(userDocRef, (doc) => {
-        if (doc.exists()) {
-          setOraBalance(doc.data().oraBalance || 0);
+      const unsubscribe = onSnapshot(userDocRef, 
+        (doc) => {
+          if (doc.exists()) {
+            setOraBalance(doc.data().oraBalance || 0);
+          }
+        },
+        async (err) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'get',
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
         }
-      });
+      );
       return () => unsubscribe();
     }
   }, [user, firestore]);

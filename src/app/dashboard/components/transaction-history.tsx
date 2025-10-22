@@ -17,6 +17,9 @@ import { useFirestore, useUser } from "@/firebase";
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy, limit, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+
 
 function formatTransactionDate(date: Timestamp | string | Date): string {
     const d = date instanceof Timestamp ? date.toDate() : new Date(date);
@@ -48,17 +51,24 @@ export function TransactionHistory() {
       const transColRef = collection(firestore, "users", user.uid, "transactions");
       const q = query(transColRef, orderBy("date", "desc"), limit(4));
       
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const userTransactions = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as Transaction));
-        setTransactions(userTransactions);
-        setLoading(false);
-      }, (error) => {
-          console.error("Error fetching transactions: ", error);
+      const unsubscribe = onSnapshot(q, 
+        (snapshot) => {
+          const userTransactions = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+          } as Transaction));
+          setTransactions(userTransactions);
           setLoading(false);
-      });
+        }, 
+        async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: transColRef.path,
+            operation: 'list',
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+          setLoading(false);
+        }
+      );
 
       return () => unsubscribe();
     }
