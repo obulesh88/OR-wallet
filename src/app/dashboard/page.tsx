@@ -1,3 +1,4 @@
+import { AddMoneyCard } from "./components/add-money-card";
 import { BalanceCard, OraBalanceCard } from "./components/balance-card";
 import { ConvertCard } from "./components/convert-card";
 import { QuickActions } from "./components/quick-actions";
@@ -11,6 +12,7 @@ export default function DashboardPage() {
           <BalanceCard />
           <OraBalanceCard />
           <UserAddressCard />
+          <AddMoneyCard />
         </div>
         <ConvertCard />
       </div>
