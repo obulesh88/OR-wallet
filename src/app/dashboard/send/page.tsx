@@ -21,6 +21,7 @@ import { useFirestore, useUser } from '@/firebase';
 import { doc, onSnapshot, runTransaction, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { processPayout } from '@/app/actions/razorpay';
 
 type BankDetails = {
   accountHolder: string;
@@ -83,11 +84,11 @@ export default function SendPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!user || !firestore || amount === '' || amount <= 0) {
+    if (!user || !firestore || !recipient || amount === '' || amount <= 0) {
         toast({
             variant: 'destructive',
-            title: 'Invalid amount',
-            description: 'Please enter an amount greater than 0.',
+            title: 'Invalid Input',
+            description: 'Please ensure all details are correct and amount is greater than 0.',
         });
         return;
     }
@@ -104,53 +105,82 @@ export default function SendPage() {
     setIsSubmitting(true);
     
     const userDocRef = doc(firestore, "users", user.uid);
-    const transactionsColRef = collection(firestore, "users", user.uid, "transactions");
-
+    
     try {
+      // First, deduct balance in a transaction to ensure atomicity
+      await runTransaction(firestore, async (transaction) => {
+          const userDoc = await transaction.get(userDocRef);
+          if (!userDoc.exists()) {
+              throw new Error("User not found");
+          }
+          const currentOraBalance = userDoc.data().oraBalance || 0;
+          if (currentOraBalance < totalOraAmount) {
+              throw new Error("Insufficient balance.");
+          }
+          const newOraBalance = currentOraBalance - totalOraAmount;
+          transaction.update(userDocRef, { oraBalance: newOraBalance });
+      });
+
+      // If balance deduction is successful, proceed with Razorpay payout
+      const payoutResult = await processPayout({
+        amount: amountRecipientReceives,
+        currency: 'INR',
+        accountHolderName: recipient.accountHolder,
+        accountNumber: recipient.accountNumber,
+        ifsc: recipient.ifscCode,
+        userEmail: user.email ?? 'no-email@orwallet.com',
+        userName: user.displayName ?? 'OR Wallet User',
+        userId: user.uid,
+      });
+
+      if (!payoutResult.success || !payoutResult.payout) {
+        // If payout fails, we need to refund the user's ORA balance.
+        // A more robust solution would use a cloud function to manage this reversal.
         await runTransaction(firestore, async (transaction) => {
             const userDoc = await transaction.get(userDocRef);
-            if (!userDoc.exists()) {
-                throw new Error("User not found");
-            }
+            if (!userDoc.exists()) { throw new Error("User not found for refund"); }
             const currentOraBalance = userDoc.data().oraBalance || 0;
-            if (currentOraBalance < totalOraAmount) {
-                throw new Error("Insufficient balance.");
-            }
-            const newOraBalance = currentOraBalance - totalOraAmount;
-            transaction.update(userDocRef, { oraBalance: newOraBalance });
+            transaction.update(userDocRef, { oraBalance: currentOraBalance + totalOraAmount });
         });
-
-        const transactionData = {
-          type: "withdraw",
-          description: `Withdrawal of ₹${amountRecipientReceives.toFixed(2)} to bank account`,
-          amount: -totalOraAmount,
-          inrAmount: amount,
-          date: serverTimestamp(),
-          status: "Pending",
-        };
-
-        addDoc(transactionsColRef, transactionData).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: transactionsColRef.path,
-            operation: 'create',
-            requestResourceData: transactionData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
+        throw new Error(payoutResult.error || 'Payout failed on Razorpay.');
+      }
+      
+      // If payout is successful, log the transaction in Firestore
+      const transactionsColRef = collection(firestore, "users", user.uid, "transactions");
+      const transactionData = {
+        type: "withdraw",
+        description: `Withdrawal of ₹${amountRecipientReceives.toFixed(2)} to bank account`,
+        amount: -totalOraAmount,
+        inrAmount: amount,
+        date: serverTimestamp(),
+        status: "Completed",
+        razorpayPayoutId: payoutResult.payout.id,
+      };
+      // Not awaiting this to avoid blocking UI, but logging errors.
+      addDoc(transactionsColRef, transactionData).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: transactionsColRef.path,
+          operation: 'create',
+          requestResourceData: transactionData,
         });
+        errorEmitter.emit('permission-error', permissionError);
+      });
 
-        toast({
-            title: 'Transfer initiated',
-            description: `Sending ₹${amountRecipientReceives.toFixed(2)}. This will debit ${totalOraAmount.toLocaleString()} ORA coins.`,
-        });
+      toast({
+          title: 'Withdrawal Successful',
+          description: `₹${amountRecipientReceives.toFixed(2)} is on its way to your bank account.`,
+      });
 
-        router.push('/dashboard');
+      router.push('/dashboard/transactions');
 
     } catch(e: any) {
         toast({
             variant: 'destructive',
-            title: 'Transaction Failed',
-            description: e.message || 'An error occurred during the transaction.',
+            title: 'Withdrawal Failed',
+            description: e.message || 'An error occurred during the withdrawal.',
         });
+        // Note: Balance reversal is attempted above, but can fail.
+        // A production app should have a more robust refund mechanism.
     } finally {
         setIsSubmitting(false);
     }
@@ -185,10 +215,10 @@ export default function SendPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Send /> Send Money
+                <Send /> Withdraw Money
               </CardTitle>
               <CardDescription>
-                Your bank details are saved. Enter the amount to send in INR.
+                Enter the amount to withdraw to your bank account.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -240,7 +270,7 @@ export default function SendPage() {
                       <p className="font-semibold">Transaction Summary</p>
                       <div className='space-y-2 text-muted-foreground'>
                         <div className='flex justify-between'>
-                          <span>Amount to Send</span>
+                          <span>Withdrawal Amount</span>
                           <span>
                             ₹{amountInr.toLocaleString('en-IN', {
                               minimumFractionDigits: 2,
@@ -259,7 +289,7 @@ export default function SendPage() {
                         </div>
                         <Separator className="bg-border/50" />
                         <div className='flex justify-between font-medium text-foreground'>
-                          <span>Recipient gets</span>
+                          <span>You will receive</span>
                           <span>
                             ₹{amountRecipientReceives.toLocaleString('en-IN', {
                               minimumFractionDigits: 2,
@@ -269,7 +299,7 @@ export default function SendPage() {
                         </div>
                         <Separator className="bg-border/50" />
                         <div className='flex justify-between font-medium text-foreground'>
-                          <span>Deduction</span>
+                          <span>Total Deduction</span>
                           <span>{totalOraAmount.toLocaleString()} ORA</span>
                         </div>
                       </div>
@@ -279,7 +309,7 @@ export default function SendPage() {
             </CardContent>
             <CardFooter>
               <Button type="submit" className="w-full" disabled={!hasSufficientBalance || amount === '' || amount <= 0 || isSubmitting}>
-                {isSubmitting ? 'Sending...' : 'Confirm & Send'}
+                {isSubmitting ? 'Processing...' : 'Confirm & Withdraw'}
               </Button>
             </CardFooter>
           </Card>
