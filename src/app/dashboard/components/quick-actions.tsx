@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Video } from "lucide-react";
+import Link from "next/link";
 
 export function QuickActions() {
   return (
@@ -21,7 +22,9 @@ export function QuickActions() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button className="w-full">Watch Ads</Button>
+          <Button className="w-full" asChild>
+            <Link href="/dashboard/earn">Watch Ads</Link>
+          </Button>
         </CardContent>
       </Card>
     </div>
