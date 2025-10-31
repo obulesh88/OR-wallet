@@ -10,8 +10,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { List, ListItem } from "@/components/ui/list";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useFirestore, useUser } from "@/firebase";
+import { doc, runTransaction, serverTimestamp, collection, addDoc } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
+import { cn } from "@/lib/utils";
 
 const games = [
   { id: 1, name: 'Coin Flip', description: 'Flip a coin, double or nothing.' },
@@ -21,6 +28,96 @@ const games = [
 
 export default function EarnPage() {
   const [showGames, setShowGames] = useState(false);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaText, setCaptchaText] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const { toast } = useToast();
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const generateCaptcha = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaText(result);
+    setCaptchaInput('');
+  };
+
+  useEffect(() => {
+    if (showCaptcha) {
+      generateCaptcha();
+    }
+  }, [showCaptcha]);
+
+  const handleCaptchaVerify = async () => {
+    if (captchaInput.toLowerCase() !== captchaText.toLowerCase()) {
+      toast({
+        variant: "destructive",
+        title: "Incorrect Captcha",
+        description: "Please try again.",
+      });
+      generateCaptcha();
+      return;
+    }
+
+    if (!user || !firestore) {
+      toast({ variant: "destructive", title: "Error", description: "You must be logged in to earn rewards." });
+      return;
+    }
+
+    setIsVerifying(true);
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const rewardAmount = 10; // 10 ORA coins
+
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        const userDoc = await transaction.get(userDocRef);
+        if (!userDoc.exists()) {
+          throw new Error("User document not found");
+        }
+
+        const currentOraBalance = userDoc.data().oraBalance || 0;
+        const newOraBalance = currentOraBalance + rewardAmount;
+        transaction.update(userDocRef, { oraBalance: newOraBalance });
+
+        const transactionsColRef = collection(firestore, 'users', user.uid, 'transactions');
+        const transactionData = {
+            type: 'earn',
+            description: 'Earned from solving Captcha',
+            amount: rewardAmount,
+            date: serverTimestamp(),
+            status: 'Completed',
+        };
+        // Not awaiting this to keep UI responsive
+        addDoc(transactionsColRef, transactionData).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: transactionsColRef.path,
+                operation: 'create',
+                requestResourceData: transactionData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+      });
+
+      toast({
+        title: "Success!",
+        description: `You've earned ${rewardAmount} ORA coins!`,
+      });
+      generateCaptcha();
+
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Reward Failed",
+        description: e.message || "An error occurred.",
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,12 +166,27 @@ export default function EarnPage() {
               Solve simple captchas to earn coins.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
-            
+          <CardContent className="flex-grow flex flex-col justify-center text-center gap-4 p-6 pt-0">
+             {showCaptcha && (
+                <div className="space-y-4">
+                   <div className="bg-muted p-4 rounded-md text-2xl font-bold tracking-widest select-none font-mono line-through text-center">
+                        {captchaText}
+                    </div>
+                    <Input 
+                        placeholder="Enter the text above" 
+                        value={captchaInput}
+                        onChange={(e) => setCaptchaInput(e.target.value)}
+                        disabled={isVerifying}
+                    />
+                    <Button onClick={handleCaptchaVerify} disabled={isVerifying || !captchaInput} className="w-full">
+                        {isVerifying ? 'Verifying...' : 'Verify'}
+                    </Button>
+                </div>
+            )}
           </CardContent>
           <CardFooter>
-            <Button className="w-full" disabled>
-                <Puzzle className="mr-2 h-4 w-4" /> Solve
+            <Button className="w-full" onClick={() => setShowCaptcha(!showCaptcha)}>
+                <Puzzle className="mr-2 h-4 w-4" /> {showCaptcha ? 'Hide Captcha' : 'Solve'}
             </Button>
           </CardFooter>
         </Card>
