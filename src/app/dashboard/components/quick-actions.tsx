@@ -23,7 +23,7 @@ export function QuickActions() {
         </CardHeader>
         <CardContent>
           <Button className="w-full" asChild>
-            <Link href="/dashboard/earn">Press</Link>
+            <Link href="/dashboard/earn">Click</Link>
           </Button>
         </CardContent>
       </Card>
