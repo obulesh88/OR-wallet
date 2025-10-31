@@ -1,8 +1,8 @@
-import { AddMoneyCard } from "./components/add-money-card";
 import { BalanceCard, OraBalanceCard } from "./components/balance-card";
 import { ConvertCard } from "./components/convert-card";
 import { QuickActions } from "./components/quick-actions";
 import { UserAddressCard } from "./components/user-address-card";
+import { TransactionHistory } from "./components/transaction-history";
 
 export default function DashboardPage() {
   return (
@@ -11,13 +11,13 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <BalanceCard />
           <OraBalanceCard />
-          <UserAddressCard />
-          <AddMoneyCard />
         </div>
+        <UserAddressCard />
         <ConvertCard />
       </div>
       <div className="space-y-6">
         <QuickActions />
+        <TransactionHistory />
       </div>
     </div>
   );
