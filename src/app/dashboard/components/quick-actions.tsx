@@ -18,7 +18,7 @@ export function QuickActions() {
             <Video className="size-5" /> Earn Rewards
           </CardTitle>
           <CardDescription>
-            Watch short video ads to earn free coins instantly.
+            watching ads, solving captchas, and playing games to earn coins
           </CardDescription>
         </CardHeader>
         <CardContent>
