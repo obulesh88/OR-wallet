@@ -1,3 +1,4 @@
+'use client';
 
 import {
   Card,
@@ -9,8 +10,18 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye } from "lucide-react";
+import { useState } from "react";
+import { List, ListItem } from "@/components/ui/list";
+
+const games = [
+  { id: 1, name: 'Coin Flip', description: 'Flip a coin, double or nothing.' },
+  { id: 2, name: 'Lucky Number', description: 'Guess the number, win big.' },
+  { id: 3, name: 'Puzzle Mania', description: 'Solve puzzles for ORA coins.' },
+];
 
 export default function EarnPage() {
+  const [showGames, setShowGames] = useState(false);
+
   return (
     <div className="space-y-6">
       <Card>
@@ -79,12 +90,20 @@ export default function EarnPage() {
               Play fun games and earn rewards.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
-            
+          <CardContent className="flex-grow flex flex-col justify-center gap-4 p-6 pt-0">
+             {showGames && (
+              <List>
+                {games.map((game) => (
+                  <ListItem key={game.id} title={game.name}>
+                    {game.description}
+                  </ListItem>
+                ))}
+              </List>
+            )}
           </CardContent>
           <CardFooter>
-            <Button className="w-full" disabled>
-                <Play className="mr-2 h-4 w-4" /> Play
+            <Button className="w-full" onClick={() => setShowGames(!showGames)}>
+                <Play className="mr-2 h-4 w-4" /> {showGames ? 'Hide Games' : 'Show Games'}
             </Button>
           </CardFooter>
         </Card>
