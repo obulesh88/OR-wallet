@@ -22,6 +22,7 @@ import { doc, onSnapshot, runTransaction, collection, addDoc, serverTimestamp } 
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { processPayout } from '@/app/actions/razorpay';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type BankDetails = {
   accountHolder: string;
@@ -33,7 +34,7 @@ type BankDetails = {
 export default function SendPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const firestore = useFirestore();
 
   const [recipient, setRecipient] = useState<BankDetails | null>(null);
@@ -41,6 +42,7 @@ export default function SendPage() {
   const [amount, setAmount] = useState<number | ''>('');
   const [oraBalance, setOraBalance] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const conversionRate = 1000; // 1 INR = 1000 ORA
   const feePercentage = 0.02; // 2% fee
@@ -54,12 +56,19 @@ export default function SendPage() {
 
   useEffect(() => {
     if (user && firestore) {
+      setLoading(true);
       const userDocRef = doc(firestore, 'users', user.uid);
       const unsubscribe = onSnapshot(userDocRef, 
         (doc) => {
           if (doc.exists()) {
-            setOraBalance(doc.data().oraBalance || 0);
+            const data = doc.data();
+            setOraBalance(data.oraBalance || 0);
+            setRecipient(data.bankDetails || null);
+            if (!data.bankDetails) {
+              setEditing(true); // Prompt to add details if they don't exist
+            }
           }
+          setLoading(false);
         },
         async (err) => {
           const permissionError = new FirestorePermissionError({
@@ -67,20 +76,14 @@ export default function SendPage() {
             operation: 'get',
           } satisfies SecurityRuleContext);
           errorEmitter.emit('permission-error', permissionError);
+          setLoading(false);
         }
       );
       return () => unsubscribe();
+    } else if (!isUserLoading) {
+      setLoading(false);
     }
-  }, [user, firestore]);
-
-  useEffect(() => {
-    const savedBankDetails = localStorage.getItem('bankDetails');
-    if (savedBankDetails) {
-      setRecipient(JSON.parse(savedBankDetails));
-    } else {
-        setEditing(true);
-    }
-  }, []);
+  }, [user, firestore, isUserLoading]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -187,29 +190,50 @@ export default function SendPage() {
   };
 
   const handleDetailsUpdated = () => {
-    const savedBankDetails = localStorage.getItem('bankDetails');
-    if (savedBankDetails) {
-      setRecipient(JSON.parse(savedBankDetails));
-    }
+    // Data is already updated via onSnapshot, just need to close the dialog.
     setEditing(false);
   }
 
   const handleOpenChange = (open: boolean) => {
+    setEditing(open);
     if (!open && !recipient) {
       router.push('/dashboard');
     }
-    setEditing(open);
   }
 
-  if (!recipient && !editing) {
-    return null;
+  if (loading) {
+    return (
+        <div className="flex justify-center items-start">
+            <div className='w-full max-w-md'>
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-4 w-64" />
+                    </CardHeader>
+                    <CardContent className='space-y-4'>
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                    </CardContent>
+                    <CardFooter>
+                        <Skeleton className="h-10 w-full" />
+                    </CardFooter>
+                </Card>
+            </div>
+        </div>
+    )
   }
 
   return (
     <div className="flex justify-center items-start">
       <div className='w-full max-w-md'>
       {editing ? (
-        <SendMoneyDialog onBankDetailsSubmit={handleDetailsUpdated} open={editing} onOpenChange={handleOpenChange} isEditing={!!recipient} />
+        <SendMoneyDialog 
+            onBankDetailsSubmit={handleDetailsUpdated} 
+            open={editing} 
+            onOpenChange={handleOpenChange} 
+            isEditing={!!recipient}
+            initialDetails={recipient}
+        />
       ) : (
         <form onSubmit={handleSubmit}>
           <Card>
@@ -308,7 +332,7 @@ export default function SendPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={!hasSufficientBalance || amount === '' || amount <= 0 || isSubmitting}>
+              <Button type="submit" className="w-full" disabled={!recipient || !hasSufficientBalance || amount === '' || amount <= 0 || isSubmitting}>
                 {isSubmitting ? 'Processing...' : 'Confirm & Withdraw'}
               </Button>
             </CardFooter>

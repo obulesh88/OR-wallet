@@ -22,7 +22,6 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -32,7 +31,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useFirestore, useUser } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const formSchema = z.object({
   accountHolder: z.string().min(1, 'Account holder name is required'),
@@ -61,28 +63,20 @@ const indianBanks = [
 
 type SendMoneyDialogProps = {
   onBankDetailsSubmit: () => void;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   isEditing?: boolean;
+  initialDetails?: SendMoneyFormValues | null;
 };
 
-export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onOpenChange, isEditing = false }: SendMoneyDialogProps) {
+export function SendMoneyDialog({ onBankDetailsSubmit, open, onOpenChange, isEditing = false, initialDetails }: SendMoneyDialogProps) {
   const { toast } = useToast();
-  const router = useRouter();
-  const [internalOpen, setInternalOpen] = useState(false);
-
-  const open = controlledOpen ?? internalOpen;
-  const setOpen = (newOpen: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(newOpen);
-    } else {
-      setInternalOpen(newOpen);
-    }
-  };
-
+  const { user } = useUser();
+  const firestore = useFirestore();
+  
   const form = useForm<SendMoneyFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialDetails || {
       accountHolder: '',
       accountNumber: '',
       ifscCode: '',
@@ -91,25 +85,44 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onO
   });
 
   useEffect(() => {
-    if (open) {
-      const savedBankDetails = localStorage.getItem('bankDetails');
-      if (savedBankDetails) {
-        form.reset(JSON.parse(savedBankDetails));
-      } else {
-        form.reset();
-      }
+    if (open && initialDetails) {
+      form.reset(initialDetails);
+    } else if (open) {
+      form.reset({
+        accountHolder: '',
+        accountNumber: '',
+        ifscCode: '',
+        bankName: '',
+      });
     }
-  }, [open, form]);
+  }, [open, initialDetails, form]);
 
-  const onSubmit = (data: SendMoneyFormValues) => {
-    localStorage.setItem('bankDetails', JSON.stringify(data));
-    toast({
-      title: isEditing ? 'Bank details updated' : 'Bank details saved',
-      description: `Your bank account details have been saved successfully.`,
+  const onSubmit = async (data: SendMoneyFormValues) => {
+    if (!user || !firestore) {
+      toast({ variant: "destructive", title: "Error", description: "User not authenticated."});
+      return;
+    }
+
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const bankDetails = {
+      bankDetails: data
+    }
+    updateDoc(userDocRef, bankDetails).then(() => {
+      toast({
+        title: isEditing ? 'Bank details updated' : 'Bank details saved',
+        description: `Your bank account details have been saved successfully.`,
+      });
+      onBankDetailsSubmit();
+      onOpenChange(false);
+    }).catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: userDocRef.path,
+        operation: 'update',
+        requestResourceData: bankDetails,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+      toast({ variant: "destructive", title: "Save Failed", description: "Could not save bank details."});
     });
-    form.reset();
-    onBankDetailsSubmit();
-    setOpen(false);
   };
   
   const dialogTitle = isEditing ? 'Edit Bank Details' : 'Add Bank Details';
@@ -117,7 +130,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open: controlledOpen, onO
 
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>

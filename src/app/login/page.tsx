@@ -72,6 +72,7 @@ export default function LoginPage() {
           balance: 0,
           oraBalance: 100, // Starting bonus
           address: uniqueAddress,
+          bankDetails: null,
         };
         
         // Create user document in Firestore
