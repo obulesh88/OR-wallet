@@ -10,7 +10,8 @@ import {
   User as UserIcon,
   LogOut,
   Landmark,
-  Loader2
+  Loader2,
+  Gamepad2
 } from "lucide-react";
 
 import {
@@ -35,7 +36,10 @@ import { getAuth, signOut } from "firebase/auth";
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/dashboard/transactions", icon: ArrowRightLeft, label: "Transactions" },
+  { href: "/dashboard/earn", icon: Gift, label: "Earn" },
+  { href: "/dashboard/games", icon: Gamepad2, label: "Games" },
   { href: "/dashboard/rewards", icon: Gift, label: "Rewards" },
+  { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
 export default function DashboardLayout({

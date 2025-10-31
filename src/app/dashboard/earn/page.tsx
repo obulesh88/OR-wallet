@@ -11,23 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye, RefreshCw, Send } from "lucide-react";
 import { useEffect, useState } from "react";
-import { List, ListItem } from "@/components/ui/list";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
 import { doc, runTransaction, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
-import { cn } from "@/lib/utils";
-
-const games = [
-  { id: 1, name: 'Coin Flip', description: 'Flip a coin, double or nothing.' },
-  { id: 2, name: 'Lucky Number', description: 'Guess the number, win big.' },
-  { id: 3, name: 'Puzzle Mania', description: 'Solve puzzles for ORA coins.' },
-];
+import Link from "next/link";
 
 export default function EarnPage() {
-  const [showGames, setShowGames] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [captchaText, setCaptchaText] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
@@ -209,19 +201,12 @@ export default function EarnPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col justify-center gap-4 p-6 pt-0">
-             {showGames && (
-              <List>
-                {games.map((game) => (
-                  <ListItem key={game.id} title={game.name}>
-                    {game.description}
-                  </ListItem>
-                ))}
-              </List>
-            )}
           </CardContent>
           <CardFooter>
-            <Button className="w-full" onClick={() => setShowGames(!showGames)}>
-                <Play className="mr-2 h-4 w-4" /> {showGames ? 'Hide Games' : 'Show Games'}
+            <Button className="w-full" asChild>
+                <Link href="/dashboard/games">
+                    <Play className="mr-2 h-4 w-4" /> Play
+                </Link>
             </Button>
           </CardFooter>
         </Card>
