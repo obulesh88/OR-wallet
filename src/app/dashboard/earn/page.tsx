@@ -1,12 +1,14 @@
+
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PartyPopper, Video, Puzzle, Gamepad2 } from "lucide-react";
+import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye } from "lucide-react";
 
 export default function EarnPage() {
   return (
@@ -25,17 +27,17 @@ export default function EarnPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Watch Ads Card */}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Video className="w-5 h-5" />
+              <Eye className="w-5 h-5" />
               Watch Ads
             </CardTitle>
             <CardDescription>
               Watch short video ads to earn free coins instantly.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
+          <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
             <PartyPopper className="w-12 h-12 text-primary" />
             <h3 className="text-xl font-bold tracking-tight">
               Coming Soon!
@@ -44,10 +46,15 @@ export default function EarnPage() {
               This feature is under development.
             </p>
           </CardContent>
+          <CardFooter>
+            <Button className="w-full" disabled>
+                <Eye className="mr-2 h-4 w-4" /> Watch
+            </Button>
+          </CardFooter>
         </Card>
 
         {/* Solve Captcha Card */}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Puzzle className="w-5 h-5" />
@@ -57,7 +64,7 @@ export default function EarnPage() {
               Solve simple captchas to earn coins.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
+          <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
             <PartyPopper className="w-12 h-12 text-primary" />
             <h3 className="text-xl font-bold tracking-tight">
               Coming Soon!
@@ -66,10 +73,15 @@ export default function EarnPage() {
               This feature is under development.
             </p>
           </CardContent>
+          <CardFooter>
+            <Button className="w-full" disabled>
+                <Puzzle className="mr-2 h-4 w-4" /> Solve
+            </Button>
+          </CardFooter>
         </Card>
 
         {/* Games Card */}
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Gamepad2 className="w-5 h-5" />
@@ -79,7 +91,7 @@ export default function EarnPage() {
               Play fun games and earn rewards.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
+          <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
             <PartyPopper className="w-12 h-12 text-primary" />
             <h3 className="text-xl font-bold tracking-tight">
               Coming Soon!
@@ -88,6 +100,11 @@ export default function EarnPage() {
               This feature is under development.
             </p>
           </CardContent>
+          <CardFooter>
+            <Button className="w-full" disabled>
+                <Play className="mr-2 h-4 w-4" /> Play
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </div>
