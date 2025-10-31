@@ -9,7 +9,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye } from "lucide-react";
+import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye, RefreshCw, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { List, ListItem } from "@/components/ui/list";
 import { Input } from "@/components/ui/input";
@@ -172,14 +172,20 @@ export default function EarnPage() {
                    <div className="bg-muted p-4 rounded-md text-2xl font-bold tracking-widest select-none font-mono line-through text-center">
                         {captchaText}
                     </div>
-                    <Input 
-                        placeholder="Enter the text above" 
-                        value={captchaInput}
-                        onChange={(e) => setCaptchaInput(e.target.value)}
-                        disabled={isVerifying}
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input 
+                          placeholder="Enter captcha text" 
+                          value={captchaInput}
+                          onChange={(e) => setCaptchaInput(e.target.value)}
+                          disabled={isVerifying}
+                      />
+                      <Button variant="ghost" size="icon" onClick={generateCaptcha} disabled={isVerifying}>
+                        <RefreshCw className="w-5 h-5" />
+                      </Button>
+                    </div>
                     <Button onClick={handleCaptchaVerify} disabled={isVerifying || !captchaInput} className="w-full">
-                        {isVerifying ? 'Verifying...' : 'Verify'}
+                        <Send className="mr-2 h-4 w-4" />
+                        {isVerifying ? 'Verifying...' : 'Submit'}
                     </Button>
                 </div>
             )}
