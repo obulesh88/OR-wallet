@@ -16,14 +16,20 @@ const PayoutSchema = z.object({
 
 type PayoutInput = z.infer<typeof PayoutSchema>;
 
-// Initialize Razorpay with credentials from environment variables
-// IMPORTANT: You must add these to your .env or hosting environment
-const rzp = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
 export async function processPayout(input: PayoutInput) {
+  // IMPORTANT: You must add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to your .env file
+  // or hosting environment for this function to work.
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET || !process.env.RAZORPAY_ACCOUNT_NUMBER) {
+    console.error('Razorpay credentials are not set in environment variables.');
+    return { success: false, error: 'Payment processing is not configured on the server.' };
+  }
+
+  // Initialize Razorpay with credentials from environment variables
+  const rzp = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_KEY_SECRET!,
+  });
+
   try {
     const validation = PayoutSchema.safeParse(input);
     if (!validation.success) {
