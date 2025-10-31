@@ -38,13 +38,7 @@ export default function EarnPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
-            <PartyPopper className="w-12 h-12 text-primary" />
-            <h3 className="text-xl font-bold tracking-tight">
-              Coming Soon!
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              This feature is under development.
-            </p>
+            
           </CardContent>
           <CardFooter>
             <Button className="w-full" disabled>
@@ -65,13 +59,7 @@ export default function EarnPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
-            <PartyPopper className="w-12 h-12 text-primary" />
-            <h3 className="text-xl font-bold tracking-tight">
-              Coming Soon!
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              This feature is under development.
-            </p>
+            
           </CardContent>
           <CardFooter>
             <Button className="w-full" disabled>
@@ -92,13 +80,7 @@ export default function EarnPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
-            <PartyPopper className="w-12 h-12 text-primary" />
-            <h3 className="text-xl font-bold tracking-tight">
-              Coming Soon!
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              This feature is under development.
-            </p>
+            
           </CardContent>
           <CardFooter>
             <Button className="w-full" disabled>
