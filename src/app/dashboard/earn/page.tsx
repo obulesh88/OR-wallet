@@ -161,7 +161,7 @@ export default function EarnPage() {
           <CardContent className="flex-grow flex flex-col justify-center text-center gap-4 p-6 pt-0">
              {showCaptcha && (
                 <div className="space-y-4">
-                   <div className="bg-muted p-4 rounded-md text-2xl font-bold tracking-widest select-none font-mono line-through text-center">
+                   <div className="bg-muted p-4 rounded-md text-2xl font-bold tracking-widest select-none font-mono text-center">
                         {captchaText}
                     </div>
                     <div className="flex items-center gap-2">
