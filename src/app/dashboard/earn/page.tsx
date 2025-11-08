@@ -149,15 +149,6 @@ export default function EarnPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
-          <Image
-              src="https://enviousgarbage.com/b/3-Vk0.Ph3HpHv/bfmUVNJ_ZtDF0P2tN/jZISzUMtTPg_3tLmTzYv2XMWjBM/xROPD/gn"
-              alt="Ad placeholder"
-              width={200}
-              height={100}
-              className="rounded-md"
-              unoptimized
-              data-ai-hint="advertisement video"
-            />
           </CardContent>
           <CardFooter>
             <Button className="w-full" onClick={handleWatchAd} disabled={isWatchingAd}>
