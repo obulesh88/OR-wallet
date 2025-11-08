@@ -26,9 +26,22 @@ export default function EarnPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isClaimingAd, setIsClaimingAd] = useState(false);
   const [adWatched, setAdWatched] = useState(false);
+  const [adCooldown, setAdCooldown] = useState(0);
+
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (adCooldown > 0) {
+      timer = setTimeout(() => {
+        setAdCooldown(adCooldown - 1);
+      }, 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [adCooldown]);
+
 
   const generateCaptcha = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -107,6 +120,7 @@ export default function EarnPage() {
     const success = await handleRewardUser(3, 'Earned from watching an Ad');
     if(success) {
         setAdWatched(false);
+        setAdCooldown(10);
     }
     setIsClaimingAd(false);
   }
@@ -174,8 +188,14 @@ export default function EarnPage() {
                     )}
                  </Button>
             ) : (
-                <Button className="w-full" onClick={handleWatchAdClick}>
-                    <Eye className="mr-2 h-4 w-4" /> Watch
+                <Button className="w-full" onClick={handleWatchAdClick} disabled={adCooldown > 0}>
+                    {adCooldown > 0 ? (
+                        `Wait ${adCooldown}s`
+                    ) : (
+                        <>
+                            <Eye className="mr-2 h-4 w-4" /> Watch
+                        </>
+                    )}
                 </Button>
             )}
           </CardFooter>
