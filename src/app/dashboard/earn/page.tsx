@@ -18,6 +18,7 @@ import { doc, runTransaction, serverTimestamp, collection, addDoc } from "fireba
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function EarnPage() {
   const [showCaptcha, setShowCaptcha] = useState(false);
@@ -138,10 +139,17 @@ export default function EarnPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
-            
+          <Image
+              src="https://picsum.photos/seed/ad/200/100"
+              alt="Ad placeholder"
+              width={200}
+              height={100}
+              className="rounded-md"
+              data-ai-hint="advertisement video"
+            />
           </CardContent>
           <CardFooter>
-            <Button className="w-full" disabled>
+            <Button className="w-full">
                 <Eye className="mr-2 h-4 w-4" /> Watch
             </Button>
           </CardFooter>
