@@ -27,20 +27,32 @@ export default function EarnPage() {
   const [isClaimingAd, setIsClaimingAd] = useState(false);
   const [adWatched, setAdWatched] = useState(false);
   const [adCooldown, setAdCooldown] = useState(0);
+  const [captchaCooldown, setCaptchaCooldown] = useState(0);
+
 
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let adTimer: NodeJS.Timeout;
     if (adCooldown > 0) {
-      timer = setTimeout(() => {
+      adTimer = setTimeout(() => {
         setAdCooldown(adCooldown - 1);
       }, 1000);
     }
-    return () => clearTimeout(timer);
+    return () => clearTimeout(adTimer);
   }, [adCooldown]);
+  
+  useEffect(() => {
+    let captchaTimer: NodeJS.Timeout;
+    if (captchaCooldown > 0) {
+      captchaTimer = setTimeout(() => {
+        setCaptchaCooldown(captchaCooldown - 1);
+      }, 1000);
+    }
+    return () => clearTimeout(captchaTimer);
+  }, [captchaCooldown]);
 
 
   const generateCaptcha = () => {
@@ -139,6 +151,7 @@ export default function EarnPage() {
     setIsVerifying(true);
     const success = await handleRewardUser(3, 'Earned from solving Captcha');
     if (success) {
+      setCaptchaCooldown(10);
       generateCaptcha();
     }
     setIsVerifying(false);
@@ -223,21 +236,21 @@ export default function EarnPage() {
                           placeholder="Enter captcha text" 
                           value={captchaInput}
                           onChange={(e) => setCaptchaInput(e.target.value)}
-                          disabled={isVerifying}
+                          disabled={isVerifying || captchaCooldown > 0}
                       />
-                      <Button variant="ghost" size="icon" onClick={generateCaptcha} disabled={isVerifying}>
+                      <Button variant="ghost" size="icon" onClick={generateCaptcha} disabled={isVerifying || captchaCooldown > 0}>
                         <RefreshCw className="w-5 h-5" />
                       </Button>
                     </div>
-                    <Button onClick={handleCaptchaVerify} disabled={isVerifying || !captchaInput} className="w-full">
-                        <Send className="mr-2 h-4 w-4" />
-                        {isVerifying ? 'Verifying...' : 'Submit'}
+                    <Button onClick={handleCaptchaVerify} disabled={isVerifying || !captchaInput || captchaCooldown > 0} className="w-full">
+                        
+                        {isVerifying ? 'Verifying...' : captchaCooldown > 0 ? `Wait ${captchaCooldown}s` : 'Submit'}
                     </Button>
                 </div>
             )}
           </CardContent>
           <CardFooter>
-            <Button className="w-full" onClick={() => setShowCaptcha(!showCaptcha)}>
+            <Button className="w-full" onClick={() => setShowCaptcha(!showCaptcha)} disabled={captchaCooldown > 0}>
                 <Puzzle className="mr-2 h-4 w-4" /> {showCaptcha ? 'Hide Captcha' : 'Solve'}
             </Button>
           </CardFooter>
