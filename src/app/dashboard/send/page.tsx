@@ -44,7 +44,7 @@ export default function SendPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const conversionRate = 1000; // 1 INR = 1000 ORA
+  const conversionRate = 250; // 1 INR = 250 ORA
   const feePercentage = 0.02; // 2% fee
   
   const amountInr = amount === '' ? 0 : amount;

@@ -19,7 +19,7 @@ export function ConvertCard() {
   const [oraBalance, setOraBalance] = useState(0);
   const [isConverting, setIsConverting] = useState(false);
   
-  const conversionRate = 1 / 1000; // 1000 ORA = 1 INR
+  const conversionRate = 0.004; // 1 ORA = 0.004 INR
 
   useEffect(() => {
     if (user && firestore) {
@@ -183,7 +183,7 @@ export function ConvertCard() {
             </p>
         )}
         <div className="text-sm text-center text-muted-foreground">
-            1,000 ORA ≈ ₹1
+            250 ORA ≈ ₹1
         </div>
 
         <Button size="lg" className="w-full" onClick={handleConvert} disabled={!hasSufficientBalance || isConverting || oraAmount === '' || oraAmount <= 0}>
