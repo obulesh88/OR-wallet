@@ -25,6 +25,7 @@ export default function EarnPage() {
   const [captchaText, setCaptchaText] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isWatchingAd, setIsWatchingAd] = useState(false);
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -45,26 +46,12 @@ export default function EarnPage() {
     }
   }, [showCaptcha]);
 
-  const handleCaptchaVerify = async () => {
-    if (captchaInput.toLowerCase() !== captchaText.toLowerCase()) {
-      toast({
-        variant: "destructive",
-        title: "Incorrect Captcha",
-        description: "Please try again.",
-      });
-      generateCaptcha();
-      return;
-    }
-
-    if (!user || !firestore) {
+  const handleRewardUser = async (rewardAmount: number, description: string) => {
+     if (!user || !firestore) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to earn rewards." });
-      return;
+      return false;
     }
-
-    setIsVerifying(true);
     const userDocRef = doc(firestore, 'users', user.uid);
-    const rewardAmount = 10; // 10 ORA coins
-
     try {
       await runTransaction(firestore, async (transaction) => {
         const userDoc = await transaction.get(userDocRef);
@@ -79,12 +66,11 @@ export default function EarnPage() {
         const transactionsColRef = collection(firestore, 'users', user.uid, 'transactions');
         const transactionData = {
             type: 'earn',
-            description: 'Earned from solving Captcha',
+            description: description,
             amount: rewardAmount,
             date: serverTimestamp(),
             status: 'Completed',
         };
-        // Not awaiting this to keep UI responsive
         addDoc(transactionsColRef, transactionData).catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
                 path: transactionsColRef.path,
@@ -99,7 +85,7 @@ export default function EarnPage() {
         title: "Success!",
         description: `You've earned ${rewardAmount} ORA coins!`,
       });
-      generateCaptcha();
+      return true;
 
     } catch (e: any) {
       toast({
@@ -107,9 +93,33 @@ export default function EarnPage() {
         title: "Reward Failed",
         description: e.message || "An error occurred.",
       });
-    } finally {
-      setIsVerifying(false);
+      return false;
     }
+  };
+
+  const handleWatchAd = async () => {
+    setIsWatchingAd(true);
+    await handleRewardUser(3, 'Earned from watching an Ad');
+    setIsWatchingAd(false);
+  }
+
+  const handleCaptchaVerify = async () => {
+    if (captchaInput.toLowerCase() !== captchaText.toLowerCase()) {
+      toast({
+        variant: "destructive",
+        title: "Incorrect Captcha",
+        description: "Please try again.",
+      });
+      generateCaptcha();
+      return;
+    }
+
+    setIsVerifying(true);
+    const success = await handleRewardUser(3, 'Earned from solving Captcha');
+    if (success) {
+      generateCaptcha();
+    }
+    setIsVerifying(false);
   };
 
   return (
@@ -140,17 +150,27 @@ export default function EarnPage() {
           </CardHeader>
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
           <Image
-              src="https://picsum.photos/seed/ad/200/100"
+              src="https://enviousgarbage.com/b/3-Vk0.Ph3HpHv/bfmUVNJ_ZtDF0P2tN/jZISzUMtTPg_3tLmTzYv2XMWjBM/xROPD/gn"
               alt="Ad placeholder"
               width={200}
               height={100}
               className="rounded-md"
+              unoptimized
               data-ai-hint="advertisement video"
             />
           </CardContent>
           <CardFooter>
-            <Button className="w-full">
-                <Eye className="mr-2 h-4 w-4" /> Watch
+            <Button className="w-full" onClick={handleWatchAd} disabled={isWatchingAd}>
+                {isWatchingAd ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Claiming...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="mr-2 h-4 w-4" /> Watch
+                  </>
+                )}
             </Button>
           </CardFooter>
         </Card>
