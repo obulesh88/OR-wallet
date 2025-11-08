@@ -18,7 +18,6 @@ import { doc, runTransaction, serverTimestamp, collection, addDoc } from "fireba
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import Link from "next/link";
-import Image from "next/image";
 
 export default function EarnPage() {
   const [showCaptcha, setShowCaptcha] = useState(false);
@@ -151,7 +150,8 @@ export default function EarnPage() {
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
           </CardContent>
           <CardFooter>
-            <Button className="w-full" onClick={handleWatchAd} disabled={isWatchingAd}>
+            <Button className="w-full" onClick={handleWatchAd} disabled={isWatchingAd} asChild>
+              <Link href="https://enviousgarbage.com/bm3/Vh0/P.3/p/v/bTmuVkJAZ/D/0d2oNnjmIez/MQT/gg3/L/TMYB2CM/jiMzx/OkDCg_" target="_blank" rel="noopener noreferrer">
                 {isWatchingAd ? (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -162,6 +162,7 @@ export default function EarnPage() {
                     <Eye className="mr-2 h-4 w-4" /> Watch
                   </>
                 )}
+              </Link>
             </Button>
           </CardFooter>
         </Card>
