@@ -54,8 +54,8 @@ export function BalanceCard() {
       <CardContent>
         <div className="text-4xl font-bold tracking-tighter">
         ₹{rupeeBalance.toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 3,
+            maximumFractionDigits: 3,
           })}
         </div>
         <CardDescription className="text-xs text-muted-foreground mt-1">
