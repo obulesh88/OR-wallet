@@ -9,7 +9,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye, RefreshCw, Send } from "lucide-react";
+import { PartyPopper, Video, Puzzle, Gamepad2, Play, Eye, RefreshCw, Send, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +24,8 @@ export default function EarnPage() {
   const [captchaText, setCaptchaText] = useState('');
   const [captchaInput, setCaptchaInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isWatchingAd, setIsWatchingAd] = useState(false);
+  const [isClaimingAd, setIsClaimingAd] = useState(false);
+  const [adWatched, setAdWatched] = useState(false);
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -96,10 +97,18 @@ export default function EarnPage() {
     }
   };
 
-  const handleWatchAd = async () => {
-    setIsWatchingAd(true);
-    await handleRewardUser(3, 'Earned from watching an Ad');
-    setIsWatchingAd(false);
+  const handleWatchAdClick = () => {
+    window.open('https://enviousgarbage.com/bm3/Vh0/P.3/p/v/bTmuVkJAZ/D/0d2oNnjmIez/MQT/gg3/L/TMYB2CM/jiMzx/OkDCg_', '_blank', 'noopener,noreferrer');
+    setAdWatched(true);
+  }
+
+  const handleClaimAdReward = async () => {
+    setIsClaimingAd(true);
+    const success = await handleRewardUser(3, 'Earned from watching an Ad');
+    if(success) {
+        setAdWatched(false);
+    }
+    setIsClaimingAd(false);
   }
 
   const handleCaptchaVerify = async () => {
@@ -150,20 +159,25 @@ export default function EarnPage() {
           <CardContent className="flex-grow flex flex-col items-center justify-center text-center gap-4 p-6 pt-0">
           </CardContent>
           <CardFooter>
-            <Button className="w-full" onClick={handleWatchAd} disabled={isWatchingAd} asChild>
-              <Link href="https://enviousgarbage.com/bm3/Vh0/P.3/p/v/bTmuVkJAZ/D/0d2oNnjmIez/MQT/gg3/L/TMYB2CM/jiMzx/OkDCg_" target="_blank" rel="noopener noreferrer">
-                {isWatchingAd ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Claiming...
-                  </>
-                ) : (
-                  <>
+            {adWatched ? (
+                 <Button className="w-full" onClick={handleClaimAdReward} disabled={isClaimingAd}>
+                    {isClaimingAd ? (
+                        <>
+                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                            Claiming...
+                        </>
+                    ) : (
+                        <>
+                            <Check className="mr-2 h-4 w-4" />
+                            Claim Reward
+                        </>
+                    )}
+                 </Button>
+            ) : (
+                <Button className="w-full" onClick={handleWatchAdClick}>
                     <Eye className="mr-2 h-4 w-4" /> Watch
-                  </>
-                )}
-              </Link>
-            </Button>
+                </Button>
+            )}
           </CardFooter>
         </Card>
 
