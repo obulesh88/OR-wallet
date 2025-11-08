@@ -151,6 +151,7 @@ export default function EarnPage() {
     setIsVerifying(true);
     const success = await handleRewardUser(3, 'Earned from solving Captcha');
     if (success) {
+      window.open('https://enviousgarbage.com/bm3/Vh0/P.3/p/v/bTmuVkJAZ/D/0d2oNnjmIez/MQT/gg3/L/TMYB2CM/jiMzx/OkDCg_', '_blank', 'noopener,noreferrer');
       setCaptchaCooldown(10);
       generateCaptcha();
     }
