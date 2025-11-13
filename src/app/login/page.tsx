@@ -109,10 +109,10 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
             <div className="font-bold text-2xl text-red-500">
-              OR
+              ORA
             </div>
           </div>
-          <CardTitle>{isSignUp ? 'Create an Account' : 'Welcome to OR Wallet'}</CardTitle>
+          <CardTitle>{isSignUp ? 'Create an Account' : 'Welcome to ORA Wallet'}</CardTitle>
 
           <CardDescription>
             {isSignUp ? 'Enter your details to get started.' : 'Sign in to access your wallet'}

@@ -105,7 +105,7 @@ export async function processPayout(input: PayoutInput) {
       mode: 'IMPS', // Or 'NEFT', 'RTGS'
       purpose: 'payout',
       queue_if_low_balance: true, // Important for production
-      narration: `OR Wallet withdrawal for ${userName}`,
+      narration: `ORA Wallet withdrawal for ${userName}`,
     });
 
     return { success: true, payout };

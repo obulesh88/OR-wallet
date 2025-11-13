@@ -49,7 +49,7 @@ export default function SendPage() {
   
   const amountInr = amount === '' ? 0 : amount;
   const feeInInr = amountInr * feePercentage;
-  const amountRecipientReceives = amountInr - feeInInr;
+  const amountRecipientReceives = amountInr - feeInr;
   const totalOraAmount = amountInr * conversionRate;
   
   const hasSufficientBalance = oraBalance >= totalOraAmount;
@@ -131,8 +131,8 @@ export default function SendPage() {
         accountHolderName: recipient.accountHolder,
         accountNumber: recipient.accountNumber,
         ifsc: recipient.ifscCode,
-        userEmail: user.email ?? 'no-email@orwallet.com',
-        userName: user.displayName ?? 'OR Wallet User',
+        userEmail: user.email ?? 'no-email@orawallet.com',
+        userName: user.displayName ?? 'ORA Wallet User',
         userId: user.uid,
       });
 
