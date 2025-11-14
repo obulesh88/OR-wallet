@@ -54,6 +54,7 @@ export default function SendPage() {
   const totalOraAmount = amountInr * conversionRate;
   
   const hasSufficientBalance = oraBalance >= totalOraAmount;
+  const isAmountValid = amountInr >= 1 && amountInr <= 10;
 
   useEffect(() => {
     if (user && firestore) {
@@ -94,6 +95,15 @@ export default function SendPage() {
             variant: 'destructive',
             title: 'Invalid Input',
             description: 'Please ensure all details are correct and amount is greater than 0.',
+        });
+        return;
+    }
+
+    if (!isAmountValid) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid Amount',
+            description: 'Withdrawal amount must be between ₹1 and ₹10.',
         });
         return;
     }
@@ -268,12 +278,14 @@ export default function SendPage() {
                       id="amount"
                       name="amount"
                       type="number"
-                      placeholder="Enter amount in INR"
+                      placeholder="Min ₹1, Max ₹10"
                       required
                       className="pl-8"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
                       disabled={isSubmitting}
+                      min="1"
+                      max="10"
                     />
                   </div>
                    {amount > 0 && !hasSufficientBalance && (
@@ -281,6 +293,11 @@ export default function SendPage() {
                       Insufficient balance.
                     </p>
                   )}
+                   {amount !== '' && !isAmountValid && (
+                     <p className="text-sm text-destructive">
+                        Amount must be between ₹1 and ₹10.
+                     </p>
+                   )}
                 </div>
                 {recipient && (
                   <div className="p-4 bg-muted rounded-md text-sm space-y-2">
@@ -297,7 +314,7 @@ export default function SendPage() {
                       </div>
                   </div>
                 )}
-                {amount > 0 && (
+                {amount > 0 && isAmountValid && (
                   <div className="p-4 bg-muted rounded-md text-sm space-y-4">
                       <p className="font-semibold">Transaction Summary</p>
                       <div className='space-y-2 text-muted-foreground'>
@@ -340,7 +357,7 @@ export default function SendPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={!recipient || !hasSufficientBalance || amount === '' || amount <= 0 || isSubmitting}>
+              <Button type="submit" className="w-full" disabled={!recipient || !hasSufficientBalance || !isAmountValid || amount === '' || isSubmitting}>
                 {isSubmitting ? 'Processing...' : 'Confirm & Withdraw'}
               </Button>
             </CardFooter>
