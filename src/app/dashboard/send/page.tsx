@@ -49,7 +49,7 @@ export default function SendPage() {
   
   const amountInr = amount === '' ? 0 : amount;
   const feeInInr = amountInr * feePercentage;
-  const amountRecipientReceives = amountInr - feeInr;
+  const amountRecipientReceives = amountInr - feeInInr;
   const totalOraAmount = amountInr * conversionRate;
   
   const hasSufficientBalance = oraBalance >= totalOraAmount;
