@@ -40,6 +40,7 @@ export default function SendPage() {
   const [recipient, setRecipient] = useState<BankDetails | null>(null);
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState<number | ''>('');
+  const [inrBalance, setInrBalance] = useState(0);
   const [oraBalance, setOraBalance] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -63,6 +64,7 @@ export default function SendPage() {
           if (doc.exists()) {
             const data = doc.data();
             setOraBalance(data.oraBalance || 0);
+            setInrBalance(data.balance || 0);
             setRecipient(data.bankDetails || null);
             if (!data.bankDetails) {
               setEditing(true); // Prompt to add details if they don't exist
@@ -200,6 +202,11 @@ export default function SendPage() {
       router.push('/dashboard');
     }
   }
+  
+  const formattedInrBalance = (inrBalance / 100).toLocaleString("en-IN", {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  });
 
   if (loading) {
     return (
@@ -248,11 +255,12 @@ export default function SendPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-baseline">
                     <Label htmlFor="amount">Amount (INR)</Label>
-                    <span className='text-sm text-muted-foreground'>
-                      Balance: {oraBalance.toLocaleString()} ORA
-                    </span>
+                    <div className='text-sm text-muted-foreground space-x-2'>
+                        <span>ORA: {oraBalance.toLocaleString()}</span>
+                        <span>INR: ₹{formattedInrBalance}</span>
+                    </div>
                   </div>
                   <div className="relative">
                     <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
