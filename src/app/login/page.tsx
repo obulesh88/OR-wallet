@@ -32,7 +32,17 @@ const formSchema = z.object({
   terms: z.boolean().optional(),
 });
 
+const signUpSchema = formSchema.extend({
+    name: z.string().min(1, 'Name is required'),
+    phoneNumber: z.string().min(1, 'Phone number is required'),
+    terms: z.literal(true, {
+        errorMap: () => ({ message: 'You must accept the terms and conditions.' }),
+    }),
+});
+
 type LoginFormValues = z.infer<typeof formSchema>;
+type SignUpFormValues = z.infer<typeof signUpSchema>;
+
 
 async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
   try {
@@ -74,8 +84,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginFormValues | SignUpFormValues>({
+    resolver: zodResolver(isSignUp ? signUpSchema : formSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -84,26 +94,28 @@ export default function LoginPage() {
       terms: false,
     },
   });
+  
+  // This effect will re-validate the form when the user switches between sign-in and sign-up
+  // This is important because the validation rules are different for each form
+  const isSignUpRef = React.useRef(isSignUp);
+  if (isSignUpRef.current !== isSignUp) {
+    form.trigger();
+    isSignUpRef.current = isSignUp;
+  }
 
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit = async (data: LoginFormValues | SignUpFormValues) => {
     const auth = getAuth(app);
     try {
       let user: User;
       if (isSignUp) {
-        if (!data.name) {
-          form.setError('name', { type: 'manual', message: 'Name is required for sign up.' });
-          return;
-        }
-        if (!data.terms) {
-            form.setError('terms', { type: 'manual', message: 'You must accept the terms and conditions.' });
-            return;
-        }
+        // We can safely cast here because the form is validated with signUpSchema
+        const signUpData = data as SignUpFormValues;
 
-        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        const userCredential = await createUserWithEmailAndPassword(auth, signUpData.email, signUpData.password);
         user = userCredential.user;
 
         await updateProfile(user, {
-          displayName: data.name
+          displayName: signUpData.name
         });
 
         // Generate a unique address
@@ -112,8 +124,8 @@ export default function LoginPage() {
         const userData = {
           uid: user.uid,
           email: user.email,
-          displayName: data.name,
-          phoneNumber: data.phoneNumber || null,
+          displayName: signUpData.name,
+          phoneNumber: signUpData.phoneNumber,
           photoURL: user.photoURL,
           balance: 0,
           oraBalance: 100, // Starting bonus
@@ -131,6 +143,9 @@ export default function LoginPage() {
   
           errorEmitter.emit('permission-error', permissionError);
         });
+        
+        // Create Razorpay contact on signup
+        await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, user.displayName);
 
         toast({
           title: 'Account Created',
@@ -139,10 +154,10 @@ export default function LoginPage() {
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
         user = userCredential.user;
+        // Create/update Razorpay contact on login
+        await createRazorpayContact(user.uid, data.phoneNumber, user.email, user.displayName);
       }
       
-      // Create Razorpay contact for both login and signup
-      await createRazorpayContact(user.uid, data.phoneNumber, user.email, user.displayName);
 
       router.push('/dashboard');
     } catch (error: any) {
@@ -159,7 +174,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <div className="font-bold text-2xl">
+            <div className="font-bold text-2xl text-primary">
               ORA
             </div>
           </div>
@@ -219,7 +234,7 @@ export default function LoginPage() {
                   name="phoneNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number (Optional)</FormLabel>
+                      <FormLabel>Phone Number</FormLabel>
                       <FormControl>
                         <Input placeholder="+91 XXXXX XXXXX" {...field} />
                       </FormControl>
