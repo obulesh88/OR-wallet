@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, Firestore } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -44,7 +44,7 @@ type LoginFormValues = z.infer<typeof formSchema>;
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 
-async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
+async function createRazorpayContact(firestore: Firestore, userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
   try {
     const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
     if (phoneNumber) payload.contact = phoneNumber;
@@ -70,6 +70,13 @@ async function createRazorpayContact(userId: string, phoneNumber?: string, email
 
     const data = await resp.json();
     console.log("Razorpay contact created/fetched:", data);
+
+    if (data.id) {
+        await setDoc(doc(firestore, "users", userId), {
+            razorpay_contact_id: data.id
+        }, { merge: true });
+    }
+
   } catch (error) {
     console.error("Error calling Razorpay contact function:", error);
     // We don't re-throw or show a toast here to avoid blocking the login flow
@@ -145,7 +152,7 @@ export default function LoginPage() {
         });
         
         // Create Razorpay contact on signup
-        await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, user.displayName);
+        await createRazorpayContact(firestore, user.uid, signUpData.phoneNumber, user.email, user.displayName);
 
         toast({
           title: 'Account Created',
@@ -155,7 +162,8 @@ export default function LoginPage() {
         const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
         user = userCredential.user;
         // Create/update Razorpay contact on login
-        await createRazorpayContact(user.uid, data.phoneNumber, user.email, user.displayName);
+        const loginData = data as LoginFormValues;
+        await createRazorpayContact(firestore, user.uid, loginData.phoneNumber, user.email, user.displayName);
       }
       
 
