@@ -52,12 +52,11 @@ async function createRazorpayContact(firestore: Firestore, userId: string, phone
     if (name) payload.name = name;
 
     const resp = await fetch(
-      "https://nwxgjyamiborsgfnzqcj.supabase.co/functions/v1/create-razorpay-contact",
+      "/api/create-contact",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
         },
         body: JSON.stringify(payload)
       }
