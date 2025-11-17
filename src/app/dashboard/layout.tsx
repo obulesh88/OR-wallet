@@ -86,7 +86,7 @@ export default function DashboardLayout({
             <div className="font-bold text-lg">
               ORA
             </div>
-            <span className="font-semibold text-lg">ORA Wallet</span>
+            <span className="font-semibold text-lg">Wallet</span>
           </div>
         </SidebarHeader>
         <SidebarContent>

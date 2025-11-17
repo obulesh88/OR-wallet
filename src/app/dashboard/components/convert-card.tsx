@@ -168,7 +168,7 @@ export function ConvertCard() {
                 </div>
                 <div className="flex justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <IndianRupee className="w-6 h-6 text-green-500" />
+                        <IndianRupee className="w-6 h-6 text-primary" />
                         <span className="font-bold text-lg">INR</span>
                     </div>
                     <div className="text-right text-lg font-bold">
