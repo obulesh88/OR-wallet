@@ -181,7 +181,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <div className="font-bold text-2xl text-destructive">
+            <div className="font-bold text-2xl text-primary">
               ORA
             </div>
           </div>
