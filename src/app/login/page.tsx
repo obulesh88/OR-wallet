@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -33,6 +33,34 @@ const formSchema = z.object({
 
 type LoginFormValues = z.infer<typeof formSchema>;
 
+async function createRazorpayContact(userId: string) {
+  try {
+    const resp = await fetch(
+      "https://nwxgjyamiborsgfnzqcj.supabase.co/functions/v1/create-razorpay-contact",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+        },
+        body: JSON.stringify({ userId })
+      }
+    );
+
+    if (!resp.ok) {
+      const errorData = await resp.json();
+      throw new Error(`Razorpay contact creation failed: ${errorData.error || resp.statusText}`);
+    }
+
+    const data = await resp.json();
+    console.log("Razorpay contact created/fetched:", data);
+  } catch (error) {
+    console.error("Error calling Razorpay contact function:", error);
+    // We don't re-throw or show a toast here to avoid blocking the login flow
+    // for a non-critical operation.
+  }
+}
+
 export default function LoginPage() {
   const app = useFirebaseApp();
   const firestore = useFirestore();
@@ -53,6 +81,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     const auth = getAuth(app);
     try {
+      let user: User;
       if (isSignUp) {
         if (!data.name) {
           form.setError('name', { type: 'manual', message: 'Name is required for sign up.' });
@@ -64,7 +93,7 @@ export default function LoginPage() {
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        const user = userCredential.user;
+        user = userCredential.user;
 
         await updateProfile(user, {
           displayName: data.name
@@ -100,8 +129,13 @@ export default function LoginPage() {
           description: 'You have been successfully signed up.',
         });
       } else {
-        await signInWithEmailAndPassword(auth, data.email, data.password);
+        const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+        user = userCredential.user;
       }
+      
+      // Create Razorpay contact for both login and signup
+      await createRazorpayContact(user.uid);
+
       router.push('/dashboard');
     } catch (error: any) {
       toast({
