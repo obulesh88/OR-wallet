@@ -1,6 +1,5 @@
 'use server';
 
-import Razorpay from 'razorpay';
 import { z } from 'zod';
 
 const PayoutSchema = z.object({
@@ -17,19 +16,6 @@ const PayoutSchema = z.object({
 type PayoutInput = z.infer<typeof PayoutSchema>;
 
 export async function processPayout(input: PayoutInput) {
-  // IMPORTANT: You must add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to your .env file
-  // or hosting environment for this function to work.
-  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET || !process.env.RAZORPAY_ACCOUNT_NUMBER) {
-    console.error('Razorpay credentials are not set in environment variables.');
-    return { success: false, error: 'Payment processing is not configured on the server.' };
-  }
-
-  // Initialize Razorpay with credentials from environment variables
-  const rzp = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET!,
-  });
-
   try {
     const validation = PayoutSchema.safeParse(input);
     if (!validation.success) {
@@ -38,80 +24,48 @@ export async function processPayout(input: PayoutInput) {
 
     const {
       amount,
-      currency,
       accountHolderName,
       accountNumber,
       ifsc,
-      userEmail,
-      userName,
       userId,
     } = validation.data;
 
-    // Razorpay requires amount in paise (smallest currency unit)
+    // The Supabase function expects the amount in paise.
     const amountInPaise = Math.round(amount * 100);
-    
-    // Step 1: Create a Contact in RazorpayX
-    // We use the userId as a reference to avoid creating duplicate contacts.
-    let contact;
-    try {
-        const existingContacts = await rzp.contacts.fetchAll({ email: userEmail });
-        if (existingContacts.count > 0) {
-            contact = existingContacts.items.find(c => c.reference_id === userId);
-        }
-        if (!contact) {
-            contact = await rzp.contacts.create({
-                name: userName,
-                email: userEmail,
-                contact: `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`, // Dummy phone
-                type: 'customer',
-                reference_id: userId,
-            });
-        }
-    } catch (error: any) {
-        // If contact creation fails, it's often due to duplicates not found by email alone.
-        // We log it but can proceed if we have a contact ID from a previous attempt.
-        console.warn('Could not create or fetch contact, might already exist:', error.message);
-        if (!contact && error.error?.field === 'reference_id') {
-             throw new Error('A contact with this user ID already exists under a different email.');
-        }
-    }
 
-    // Ensure we have a contact to proceed
-    if (!contact?.id) {
-      throw new Error('Failed to create or find a Razorpay contact for the user.');
-    }
-
-    // Step 2: Create a Fund Account (the user's bank account)
-    const fundAccount = await rzp.fundAccount.create({
-        contact_id: contact.id,
-        account_type: 'bank_account',
-        bank_account: {
+    const res = await fetch(
+      "https://nwxgjyamiborsgfnzqcj.supabase.co/functions/v1/create-razorpay-fund-and-payout",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+        },
+        body: JSON.stringify({
+          firebase_uid: userId,
+          amount: amountInPaise,
+          purpose: "withdrawal",
+          bank: {
             name: accountHolderName,
             ifsc: ifsc,
-            account_number: accountNumber,
-        },
-    });
+            account_number: accountNumber
+          }
+        })
+      }
+    );
 
-    if (!fundAccount) {
-        throw new Error('Failed to create fund account on Razorpay.');
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw new Error(data.error || 'An error occurred with the payout service.');
     }
-
-    // Step 3: Create the Payout
-    const payout = await rzp.payouts.create({
-      account_number: process.env.RAZORPAY_ACCOUNT_NUMBER!, // Your business account number
-      fund_account_id: fundAccount.id,
-      amount: amountInPaise,
-      currency: currency,
-      mode: 'IMPS', // Or 'NEFT', 'RTGS'
-      purpose: 'payout',
-      queue_if_low_balance: true, // Important for production
-      narration: `ORA Wallet withdrawal for ${userName}`,
-    });
-
-    return { success: true, payout };
+    
+    // Assuming the Supabase function returns the payout object on success
+    return { success: true, payout: data };
 
   } catch (error: any) {
-    console.error('Razorpay Payout Error:', error);
-    return { success: false, error: error.message || 'An unknown error occurred with Razorpay.' };
+    console.error('Payout Error:', error);
+    return { success: false, error: error.message || 'An unknown error occurred with the payout service.' };
   }
 }
