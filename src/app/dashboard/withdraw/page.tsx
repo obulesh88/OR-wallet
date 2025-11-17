@@ -1,6 +1,5 @@
 "use client";
 
-import { createFundAndPayout } from "@/lib/razorpay";
 import { useUser } from "@/firebase";
 
 export default function WithdrawPage() {
@@ -15,15 +14,25 @@ export default function WithdrawPage() {
     try {
         const idToken = await user.getIdToken(true);
 
-        const result = await createFundAndPayout({
-            firebaseUid: user.uid,
+        const res = await fetch('/api/payout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
             idToken,
             bankName: "Test User",
-            ifsc: "HDFC0001234", // Example IFSC, use a real one for testing
-            accountNumber: "123456789012", // Example account, use a real one for testing
-            amount: 1, // ₹1, as Razorpay might have minimums
-            purpose: "withdrawal"
+            ifsc: "HDFC0001234",
+            accountNumber: "123456789012",
+            amount: 100, // in paise (e.g. 100 = 1 INR)
+          }),
         });
+
+        const result = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(result.error || 'Something went wrong');
+        }
 
         console.log("Payout Result:", result);
         alert(JSON.stringify(result, null, 2));
