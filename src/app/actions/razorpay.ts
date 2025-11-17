@@ -40,7 +40,7 @@ export async function processPayout(input: PayoutInput) {
         headers: {
           "Content-Type": "application/json",
           "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
-      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
         },
         body: JSON.stringify({
           firebase_uid: userId,
@@ -55,11 +55,12 @@ export async function processPayout(input: PayoutInput) {
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
-        throw new Error(data.error || 'An error occurred with the payout service.');
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'An error occurred with the payout service.');
     }
+    
+    const data = await res.json();
     
     // Assuming the Supabase function returns the payout object on success
     return { success: true, payout: data };

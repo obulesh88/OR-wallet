@@ -47,7 +47,7 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 async function createRazorpayContact(firestore: Firestore, userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
   try {
     const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
-    if (phoneNumber) payload.contact = phoneNumber;
+    if (phoneNumber) payload.contact = `+91${phoneNumber}`; // Assuming Indian phone numbers
     if (email) payload.email = email;
     if (name) payload.name = name;
 
@@ -71,7 +71,8 @@ async function createRazorpayContact(firestore: Firestore, userId: string, phone
     console.log("Razorpay contact created/fetched:", data);
 
     if (data.id) {
-        await setDoc(doc(firestore, "users", userId), {
+        const userRef = doc(firestore, "users", userId);
+        await setDoc(userRef, {
             razorpay_contact_id: data.id
         }, { merge: true });
     }
@@ -111,6 +112,10 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues | SignUpFormValues) => {
     const auth = getAuth(app);
+    if (!firestore) {
+        toast({ variant: "destructive", title: "Error", description: "Database not available. Please try again later." });
+        return;
+    }
     try {
       let user: User;
       if (isSignUp) {
@@ -160,12 +165,8 @@ export default function LoginPage() {
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
         user = userCredential.user;
-        // Create/update Razorpay contact on login
-        const loginData = data as LoginFormValues;
-        await createRazorpayContact(firestore, user.uid, loginData.phoneNumber, user.email, user.displayName);
       }
       
-
       router.push('/dashboard');
     } catch (error: any) {
       toast({
@@ -243,7 +244,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="+91 XXXXX XXXXX" {...field} />
+                        <Input placeholder="9876543210" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
