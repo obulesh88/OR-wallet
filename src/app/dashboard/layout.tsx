@@ -39,6 +39,7 @@ const navItems = [
   { href: "/dashboard/earn", icon: Gift, label: "Earn" },
   { href: "/dashboard/games", icon: Gamepad2, label: "Games" },
   { href: "/dashboard/rewards", icon: Gift, label: "Rewards" },
+  { href: "/dashboard/withdraw", icon: Landmark, label: "Withdraw" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
