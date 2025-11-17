@@ -21,11 +21,14 @@ import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { Checkbox } from '@/components/ui/checkbox';
+import Link from 'next/link';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().optional(),
+  terms: z.boolean().optional(),
 });
 
 type LoginFormValues = z.infer<typeof formSchema>;
@@ -43,6 +46,7 @@ export default function LoginPage() {
       email: '',
       password: '',
       name: '',
+      terms: false,
     },
   });
 
@@ -54,6 +58,11 @@ export default function LoginPage() {
           form.setError('name', { type: 'manual', message: 'Name is required for sign up.' });
           return;
         }
+        if (!data.terms) {
+            form.setError('terms', { type: 'manual', message: 'You must accept the terms and conditions.' });
+            return;
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
@@ -162,6 +171,32 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+              {isSignUp && (
+                <FormField
+                  control={form.control}
+                  name="terms"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel className="font-normal">
+                                I agree to the{' '}
+                                <Link href="/terms" target="_blank" className="underline hover:text-primary">
+                                Terms and Conditions
+                                </Link>
+                                .
+                            </FormLabel>
+                            <FormMessage />
+                        </div>
+                    </FormItem>
+                  )}
+                />
+              )}
               <Button type="submit" className="w-full">
                 {isSignUp ? 'Sign Up' : 'Sign In'}
               </Button>
