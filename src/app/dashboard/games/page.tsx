@@ -4,11 +4,18 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Gamepad2 } from 'lucide-react';
 import Image from 'next/image';
+
+export const metadata = {
+  title: "Games",
+};
+
+export const viewport = {
+  themeColor: "#1a1a1a",
+};
 
 export default function GamesPage() {
   return (
