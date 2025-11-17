@@ -117,7 +117,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <div className="font-bold text-2xl text-red-500">
+            <div className="font-bold text-2xl">
               ORA
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                Don&apos;t have an account?{' '}
+                Don't have an account?{' '}
                 <Button variant="link" className="p-0 h-auto" onClick={() => setIsSignUp(true)}>
                   Sign Up
                 </Button>
