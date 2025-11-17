@@ -28,13 +28,19 @@ const formSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().optional(),
+  phoneNumber: z.string().optional(),
   terms: z.boolean().optional(),
 });
 
 type LoginFormValues = z.infer<typeof formSchema>;
 
-async function createRazorpayContact(userId: string) {
+async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
   try {
+    const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
+    if (phoneNumber) payload.contact = phoneNumber;
+    if (email) payload.email = email;
+    if (name) payload.name = name;
+
     const resp = await fetch(
       "https://nwxgjyamiborsgfnzqcj.supabase.co/functions/v1/create-razorpay-contact",
       {
@@ -43,7 +49,7 @@ async function createRazorpayContact(userId: string) {
           "Content-Type": "application/json",
           "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
         },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify(payload)
       }
     );
 
@@ -74,6 +80,7 @@ export default function LoginPage() {
       email: '',
       password: '',
       name: '',
+      phoneNumber: '',
       terms: false,
     },
   });
@@ -106,6 +113,7 @@ export default function LoginPage() {
           uid: user.uid,
           email: user.email,
           displayName: data.name,
+          phoneNumber: data.phoneNumber || null,
           photoURL: user.photoURL,
           balance: 0,
           oraBalance: 100, // Starting bonus
@@ -134,7 +142,7 @@ export default function LoginPage() {
       }
       
       // Create Razorpay contact for both login and signup
-      await createRazorpayContact(user.uid);
+      await createRazorpayContact(user.uid, data.phoneNumber, user.email, user.displayName);
 
       router.push('/dashboard');
     } catch (error: any) {
@@ -205,6 +213,21 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+               {isSignUp && (
+                 <FormField
+                  control={form.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+91 XXXXX XXXXX" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               {isSignUp && (
                 <FormField
                   control={form.control}
