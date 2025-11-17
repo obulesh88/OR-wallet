@@ -186,7 +186,7 @@ export default function LoginPage() {
                         <div className="space-y-1 leading-none">
                             <FormLabel className="font-normal">
                                 I agree to the{' '}
-                                <Link href="/terms" target="_blank" className="underline hover:text-primary">
+                                <Link href="https://docs.google.com/document/d/1qTpIzOMtd2q9kLBKRjGFewRBdeOTkO51e0AAUtGTuYk/edit?usp=drivesdk" target="_blank" className="underline hover:text-primary">
                                 Terms and Conditions
                                 </Link>
                                 .
