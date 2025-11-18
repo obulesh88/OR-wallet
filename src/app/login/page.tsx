@@ -47,7 +47,7 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 async function createRazorpayContact(firestore: Firestore, userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
   try {
     const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
-    if (phoneNumber) payload.contact = `+91${phoneNumber}`; // Assuming Indian phone numbers
+    if (phoneNumber) payload.contact = `+91${phoneNumber}`; // Ensure +91 prefix
     if (email) payload.email = email;
     if (name) payload.name = name;
 
