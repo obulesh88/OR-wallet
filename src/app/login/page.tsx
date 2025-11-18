@@ -78,7 +78,6 @@ async function createRazorpayContact(firestore: Firestore, userId: string, phone
             console.error("Failed to save razorpay_contact_id", error);
         });
     }
-
   } catch (error) {
     console.error("Error calling Razorpay contact function:", error);
     // We don't re-throw or show a toast here to avoid blocking the login flow
@@ -143,7 +142,15 @@ export default function LoginPage() {
           balance: 0,
           oraBalance: 100, // Starting bonus
           address: uniqueAddress,
-          bankDetails: null,
+          accountHolderName: "",
+          accountNumber: "",
+          bankName: "",
+          ifscCode: "",
+          payoutLastAmount: 0,
+          payoutLastId: "",
+          payoutStatus: "N/A",
+          razorpayContactId: "",
+          razorpayFundAccount: "",
         };
         
         // Create user document in Firestore

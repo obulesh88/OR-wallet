@@ -25,7 +25,7 @@ import { processPayout } from '@/app/actions/razorpay';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type BankDetails = {
-  accountHolder: string;
+  accountHolderName: string;
   accountNumber: string;
   bankName: string;
   ifscCode: string;
@@ -66,8 +66,15 @@ export default function SendPage() {
             const data = doc.data();
             setOraBalance(data.oraBalance || 0);
             setInrBalance(data.balance || 0);
-            setRecipient(data.bankDetails || null);
-            if (!data.bankDetails) {
+            if (data.accountHolderName && data.accountNumber && data.bankName && data.ifscCode) {
+              setRecipient({
+                accountHolderName: data.accountHolderName,
+                accountNumber: data.accountNumber,
+                bankName: data.bankName,
+                ifscCode: data.ifscCode,
+              });
+            } else {
+              setRecipient(null);
               setEditing(true); // Prompt to add details if they don't exist
             }
           }
@@ -140,7 +147,7 @@ export default function SendPage() {
       const payoutResult = await processPayout({
         amount: amountRecipientReceives,
         currency: 'INR',
-        accountHolderName: recipient.accountHolder,
+        accountHolderName: recipient.accountHolderName,
         accountNumber: recipient.accountNumber,
         ifsc: recipient.ifscCode,
         userEmail: user.email ?? 'no-email@orawallet.com',
@@ -308,7 +315,7 @@ export default function SendPage() {
                         </Button>
                       </div>
                       <div className='text-muted-foreground'>
-                        <p>{recipient.accountHolder}</p>
+                        <p>{recipient.accountHolderName}</p>
                         <p>Ending in {recipient.accountNumber.slice(-4)}</p>
                         <p>{recipient.bankName}</p>
                       </div>

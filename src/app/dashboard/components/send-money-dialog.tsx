@@ -6,7 +6,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -30,14 +29,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useFirestore, useUser } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
 const formSchema = z.object({
-  accountHolder: z.string().min(1, 'Account holder name is required'),
+  accountHolderName: z.string().min(1, 'Account holder name is required'),
   accountNumber: z.string().min(1, 'Account number is required'),
   ifscCode: z.string().min(1, 'IFSC code is required'),
   bankName: z.string().min(1, 'Bank name is required'),
@@ -77,7 +76,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open, onOpenChange, isEdi
   const form = useForm<SendMoneyFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialDetails || {
-      accountHolder: '',
+      accountHolderName: '',
       accountNumber: '',
       ifscCode: '',
       bankName: '',
@@ -89,7 +88,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open, onOpenChange, isEdi
       form.reset(initialDetails);
     } else if (open) {
       form.reset({
-        accountHolder: '',
+        accountHolderName: '',
         accountNumber: '',
         ifscCode: '',
         bankName: '',
@@ -104,10 +103,8 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open, onOpenChange, isEdi
     }
 
     const userDocRef = doc(firestore, 'users', user.uid);
-    const bankDetails = {
-      bankDetails: data
-    }
-    updateDoc(userDocRef, bankDetails).then(() => {
+
+    updateDoc(userDocRef, data).then(() => {
       toast({
         title: isEditing ? 'Bank details updated' : 'Bank details saved',
         description: `Your bank account details have been saved successfully.`,
@@ -118,7 +115,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open, onOpenChange, isEdi
       const permissionError = new FirestorePermissionError({
         path: userDocRef.path,
         operation: 'update',
-        requestResourceData: bankDetails,
+        requestResourceData: data,
       });
       errorEmitter.emit('permission-error', permissionError);
       toast({ variant: "destructive", title: "Save Failed", description: "Could not save bank details."});
@@ -145,7 +142,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open, onOpenChange, isEdi
           >
             <FormField
               control={form.control}
-              name="accountHolder"
+              name="accountHolderName"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Account Holder Name</FormLabel>
