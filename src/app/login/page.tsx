@@ -34,7 +34,7 @@ const formSchema = z.object({
 
 const signUpSchema = formSchema.extend({
     name: z.string().min(1, 'Name is required'),
-    phoneNumber: z.string().min(1, 'Phone number is required'),
+    phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').max(10, 'Phone number must be at most 10 digits'),
     terms: z.literal(true, {
         errorMap: () => ({ message: 'You must accept the terms and conditions.' }),
     }),
@@ -72,9 +72,11 @@ async function createRazorpayContact(firestore: Firestore, userId: string, phone
 
     if (data.id) {
         const userRef = doc(firestore, "users", userId);
-        await setDoc(userRef, {
+        setDoc(userRef, {
             razorpay_contact_id: data.id
-        }, { merge: true });
+        }, { merge: true }).catch((error) => {
+            console.error("Failed to save razorpay_contact_id", error);
+        });
     }
 
   } catch (error) {
@@ -136,7 +138,7 @@ export default function LoginPage() {
           uid: user.uid,
           email: user.email,
           displayName: signUpData.name,
-          phoneNumber: signUpData.phoneNumber,
+          phoneNumber: `+91${signUpData.phoneNumber}`,
           photoURL: user.photoURL,
           balance: 0,
           oraBalance: 100, // Starting bonus
@@ -244,7 +246,12 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="9876543210" {...field} />
+                        <div className="relative">
+                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <span className="text-gray-500 sm:text-sm">+91</span>
+                          </div>
+                          <Input type="tel" placeholder="98765 43210" {...field} className="pl-10" />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
