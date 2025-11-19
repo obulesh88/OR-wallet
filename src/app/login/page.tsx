@@ -41,9 +41,11 @@ async function createRazorpayContact(userId: string, phoneNumber: string, email:
 
     const responseData = await resp.json();
     if (!resp.ok) {
-      console.error(`Razorpay contact creation API failed: ${responseData.error || resp.statusText}`);
+      // Log the error but don't block the user from signing in.
+      // The app can have a mechanism to retry this later.
+      console.error(`Razorpay contact creation failed: ${responseData.error || resp.statusText}`);
     } else {
-        console.log("Razorpay contact creation initiated, server will update Firestore:", responseData);
+        console.log("Razorpay contact created and user updated in Firestore:", responseData);
     }
   } catch (error) {
     console.error("Error calling create-contact API:", error);
@@ -133,7 +135,7 @@ export default function LoginPage() {
           razorpayFundAccount: "",
         };
         
-        setDoc(userRef, userData, { merge: true }).catch(async (serverError) => {
+        await setDoc(userRef, userData, { merge: true }).catch(async (serverError) => {
           const permissionError = new FirestorePermissionError({
             path: userRef.path,
             operation: 'create',
@@ -143,9 +145,8 @@ export default function LoginPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
         
-        // This is now an async call that we don't need to wait for.
-        // The backend API route will handle updating Firestore.
-        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
+        // Await the function to ensure it completes.
+        await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
 
         toast({
           title: 'Account Created',
