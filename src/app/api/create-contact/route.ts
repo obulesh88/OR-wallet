@@ -25,8 +25,6 @@ export async function POST(req: Request) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // The service_role key has super admin rights and should be used for server-to-server calls.
-          // It must be passed as the 'apikey' header, not 'Authorization'.
           "apikey": supabaseServiceRoleKey
         },
         body: JSON.stringify({ name, email, contact }),
