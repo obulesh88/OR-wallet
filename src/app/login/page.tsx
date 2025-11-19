@@ -47,6 +47,7 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
   try {
     const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
+    // The phone number from the form doesn't have +91, but the API expects it.
     if (phoneNumber) payload.contact = `+91${phoneNumber}`;
     if (email) payload.email = email;
     if (name) payload.name = name;
@@ -63,7 +64,8 @@ async function createRazorpayContact(userId: string, phoneNumber?: string, email
       console.error(`Razorpay contact creation API failed: ${errorData.error || resp.statusText}`);
     } else {
         const data = await resp.json();
-        console.log("Razorpay contact creation initiated:", data);
+        // The backend now handles updating firestore, so we just log success here.
+        console.log("Razorpay contact creation initiated, server will update Firestore:", data);
     }
   } catch (error) {
     console.error("Error calling create-contact API:", error);
@@ -146,7 +148,7 @@ export default function LoginPage() {
         
         // This is now an async call that we don't need to wait for.
         // The backend API route will handle updating Firestore.
-        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, user.displayName);
+        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
 
         toast({
           title: 'Account Created',
