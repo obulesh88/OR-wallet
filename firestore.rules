@@ -11,21 +11,19 @@ service cloud.firestore {
 
     // Rules for the 'users' collection
     match /users/{userId} {
-      // Users can read and update their own profile document
+      // Users can read and update their own profile document.
       allow read, update: if isOwner(userId);
 
-      // Users can create their own profile document
+      // Users can create their own profile document if the UID matches.
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
 
       // Rules for the 'transactions' subcollection
       match /transactions/{transactionId} {
-        // Users can read and write their own individual transaction documents
-        allow get, update, delete: if isOwner(userId);
-        // Users can create their own transaction documents
-        allow create: if isOwner(userId);
+        // Users can read and write (create, update, delete) their own individual transaction documents.
+        allow read, write: if isOwner(userId);
       }
       
-      // Users can list their own transactions
+      // Explicitly allow users to list their own transactions. This is required for collection queries.
       allow list: if isOwner(userId);
     }
   }
