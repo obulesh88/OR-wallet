@@ -33,14 +33,21 @@ export async function processPayout(input: PayoutInput) {
     // The Supabase function expects the amount in paise.
     const amountInPaise = Math.round(amount * 100);
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Supabase URL or Anon Key is not configured in environment variables.');
+    }
+
     const res = await fetch(
-      "https://nwxgjyamiborsgfnzqcj.supabase.co/functions/v1/create-razorpay-fund-and-payout",
+      `${supabaseUrl}/functions/v1/create-razorpay-fund-and-payout`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eGdqeWFtaWJvcnNnZm56cWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY0NTg0MDAsImV4cCI6MjAzMjAzNDQwMH0.Pczifn_iyRT616sB0N_aQENY1EC2i3F2AFpaBvT1S8w",
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eGdqeWFtaWJvcnNnZm56cWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY0NTg0MDAsImV4cCI6MjAzMjAzNDQwMH0.Pczifn_iyRT616sB0N_aQENY1EC2i3F2AFpaBvT1S8w"
+          "apikey": supabaseAnonKey,
+          "Authorization": `Bearer ${supabaseAnonKey}`
         },
         body: JSON.stringify({
           firebase_uid: userId,

@@ -10,9 +10,13 @@ export async function POST(req: Request) {
       return Response.json({ error: 'userId, contact, and name are required' }, { status: 400 });
     }
 
-    const supabaseUrl = 'https://nwxgjyamiborsgfnzqcj.supabase.co';
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+    if (!supabaseUrl) {
+      console.error('Supabase URL is not set in environment variables.');
+      return Response.json({ error: 'Server configuration error: NEXT_PUBLIC_SUPABASE_URL is missing.' }, { status: 500 });
+    }
     if (!supabaseServiceRoleKey) {
         console.error('Supabase service role key is not set in environment variables.');
         return Response.json({ error: 'Server configuration error: SUPABASE_SERVICE_ROLE_KEY is missing.' }, { status: 500 });
