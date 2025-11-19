@@ -24,6 +24,31 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 
+async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
+  try {
+    const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
+    if (phoneNumber) payload.contact = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
+    if (email) payload.email = email;
+    if (name) payload.name = name;
+
+    const resp = await fetch("/api/create-contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!resp.ok) {
+      const errorData = await resp.json();
+      console.error(`Razorpay contact creation API failed: ${errorData.error || resp.statusText}`);
+    } else {
+        const data = await resp.json();
+        console.log("Razorpay contact creation initiated, server will update Firestore:", data);
+    }
+  } catch (error) {
+    console.error("Error calling create-contact API:", error);
+  }
+}
+
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -42,35 +67,6 @@ const signUpSchema = formSchema.extend({
 
 type LoginFormValues = z.infer<typeof formSchema>;
 type SignUpFormValues = z.infer<typeof signUpSchema>;
-
-
-async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
-  try {
-    const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
-    // The phone number from the form doesn't have +91, but the API expects it.
-    if (phoneNumber) payload.contact = `+91${phoneNumber}`;
-    if (email) payload.email = email;
-    if (name) payload.name = name;
-
-    const resp = await fetch("/api/create-contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!resp.ok) {
-      const errorData = await resp.json();
-      // Log the error but don't block the user. The backend handles the core logic.
-      console.error(`Razorpay contact creation API failed: ${errorData.error || resp.statusText}`);
-    } else {
-        const data = await resp.json();
-        // The backend now handles updating firestore, so we just log success here.
-        console.log("Razorpay contact creation initiated, server will update Firestore:", data);
-    }
-  } catch (error) {
-    console.error("Error calling create-contact API:", error);
-  }
-}
 
 export default function LoginPage() {
   const app = useFirebaseApp();
