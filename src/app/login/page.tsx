@@ -44,44 +44,29 @@ type LoginFormValues = z.infer<typeof formSchema>;
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 
-async function createRazorpayContact(firestore: Firestore, userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
+async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
   try {
     const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
-    if (phoneNumber) payload.contact = `+91${phoneNumber}`; // Ensure +91 prefix
+    if (phoneNumber) payload.contact = `+91${phoneNumber}`;
     if (email) payload.email = email;
     if (name) payload.name = name;
 
-    const resp = await fetch(
-      "/api/create-contact",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload)
-      }
-    );
+    const resp = await fetch("/api/create-contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
     if (!resp.ok) {
       const errorData = await resp.json();
-      throw new Error(`Razorpay contact creation failed: ${errorData.error || resp.statusText}`);
-    }
-
-    const data = await resp.json();
-    console.log("Razorpay contact created/fetched:", data);
-
-    if (data.id) {
-        const userRef = doc(firestore, "users", userId);
-        setDoc(userRef, {
-            razorpay_contact_id: data.id
-        }, { merge: true }).catch((error) => {
-            console.error("Failed to save razorpay_contact_id", error);
-        });
+      // Log the error but don't block the user. The backend handles the core logic.
+      console.error(`Razorpay contact creation API failed: ${errorData.error || resp.statusText}`);
+    } else {
+        const data = await resp.json();
+        console.log("Razorpay contact creation initiated:", data);
     }
   } catch (error) {
-    console.error("Error calling Razorpay contact function:", error);
-    // We don't re-throw or show a toast here to avoid blocking the login flow
-    // for a non-critical operation.
+    console.error("Error calling create-contact API:", error);
   }
 }
 
@@ -103,8 +88,6 @@ export default function LoginPage() {
     },
   });
   
-  // This effect will re-validate the form when the user switches between sign-in and sign-up
-  // This is important because the validation rules are different for each form
   const isSignUpRef = React.useRef(isSignUp);
   if (isSignUpRef.current !== isSignUp) {
     form.trigger();
@@ -120,7 +103,6 @@ export default function LoginPage() {
     try {
       let user: User;
       if (isSignUp) {
-        // We can safely cast here because the form is validated with signUpSchema
         const signUpData = data as SignUpFormValues;
 
         const userCredential = await createUserWithEmailAndPassword(auth, signUpData.email, signUpData.password);
@@ -130,7 +112,6 @@ export default function LoginPage() {
           displayName: signUpData.name
         });
 
-        // Generate a unique address
         const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
         const userRef = doc(firestore, 'users', user.uid);
         const userData = {
@@ -140,7 +121,7 @@ export default function LoginPage() {
           phoneNumber: `+91${signUpData.phoneNumber}`,
           photoURL: user.photoURL,
           balance: 0,
-          oraBalance: 100, // Starting bonus
+          oraBalance: 100,
           address: uniqueAddress,
           accountHolderName: "",
           accountNumber: "",
@@ -153,7 +134,6 @@ export default function LoginPage() {
           razorpayFundAccount: "",
         };
         
-        // Create user document in Firestore
         setDoc(userRef, userData, { merge: true }).catch(async (serverError) => {
           const permissionError = new FirestorePermissionError({
             path: userRef.path,
@@ -164,8 +144,9 @@ export default function LoginPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
         
-        // Create Razorpay contact on signup
-        await createRazorpayContact(firestore, user.uid, signUpData.phoneNumber, user.email, user.displayName);
+        // This is now an async call that we don't need to wait for.
+        // The backend API route will handle updating Firestore.
+        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, user.displayName);
 
         toast({
           title: 'Account Created',
