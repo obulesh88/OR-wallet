@@ -19,9 +19,14 @@ service cloud.firestore {
 
       // Rules for the 'transactions' subcollection
       match /transactions/{transactionId} {
-        // Users can create, read, and list their own transactions
-        allow read, write: if isOwner(userId);
+        // Users can read and write their own individual transaction documents
+        allow get, update, delete: if isOwner(userId);
+        // Users can create their own transaction documents
+        allow create: if isOwner(userId);
       }
+      
+      // Users can list their own transactions
+      allow list: if isOwner(userId);
     }
   }
 }
