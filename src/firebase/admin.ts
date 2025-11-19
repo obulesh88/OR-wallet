@@ -11,9 +11,8 @@ if (!admin.apps.length) {
       credential: admin.credential.cert(serviceAccount),
     });
   } else {
-    // This will initialize the app with Application Default Credentials
-    // Useful for running in Google Cloud environments
-    console.log("Initializing Firebase Admin with Application Default Credentials");
+    // This should only happen in local development or if the env var is missing.
+    console.log("Initializing Firebase Admin with default credentials. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is set in production.");
     admin.initializeApp();
   }
 }

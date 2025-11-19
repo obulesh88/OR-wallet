@@ -1,23 +1,21 @@
 
 import { admin } from '@/firebase/admin';
-import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { userId, contact, email, name } = body;
 
-    if (!userId) {
-      return Response.json({ error: 'userId is required' }, { status: 400 });
+    if (!userId || !contact || !name) {
+      return Response.json({ error: 'userId, contact, and name are required' }, { status: 400 });
     }
 
-    // Use environment variables for sensitive keys
     const supabaseUrl = 'https://nwxgjyamiborsgfnzqcj.supabase.co';
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseServiceRoleKey) {
         console.error('Supabase service role key is not set in environment variables.');
-        return Response.json({ error: 'Server configuration error.' }, { status: 500 });
+        return Response.json({ error: 'Server configuration error: SUPABASE_SERVICE_ROLE_KEY is missing.' }, { status: 500 });
     }
 
     // Call Supabase function to create Razorpay contact
@@ -28,9 +26,10 @@ export async function POST(req: Request) {
         headers: {
           "Content-Type": "application/json",
           // The service_role key has super admin rights and should be used for server-to-server calls.
-          "Authorization": `Bearer ${supabaseServiceRoleKey}`
+          // It must be passed as the 'apikey' header, not 'Authorization'.
+          "apikey": supabaseServiceRoleKey
         },
-        body: JSON.stringify({ userId, contact, email, name }),
+        body: JSON.stringify({ name, email, contact }),
       }
     );
 
@@ -38,8 +37,8 @@ export async function POST(req: Request) {
 
     if (!res.ok) {
       // Forward the error from the Supabase function
-      console.error('Supabase function error:', data);
-      return Response.json({ error: data.error || 'Failed to create Razorpay contact' }, { status: res.status });
+      console.error('Supabase function returned an error:', { status: res.status, data });
+      return Response.json({ error: data.error || 'Failed to create Razorpay contact via Supabase function' }, { status: res.status });
     }
 
     // If contact is created successfully, update Firestore with the contact ID
@@ -48,9 +47,13 @@ export async function POST(req: Request) {
       await userRef.update({
         razorpayContactId: data.id,
       });
+      console.log(`Successfully updated user ${userId} with razorpayContactId ${data.id}`);
+      return Response.json({ id: data.id, message: 'Contact created and user updated successfully.' }, { status: 200 });
+    } else {
+        console.error('Supabase function response did not include a contact ID.', data);
+        return Response.json({ error: 'Failed to get contact ID from Supabase function.' }, { status: 500 });
     }
 
-    return Response.json(data, { status: res.status });
   } catch (e: any) {
     console.error("Error in /api/create-contact:", e);
     return Response.json({ error: e.message || 'An internal server error occurred' }, { status: 500 });

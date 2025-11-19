@@ -24,12 +24,14 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 
-async function createRazorpayContact(userId: string, phoneNumber?: string, email?: string | null, name?: string | null) {
+async function createRazorpayContact(userId: string, phoneNumber: string, email: string | null, name: string) {
   try {
-    const payload: { userId: string; contact?: string, email?: string, name?: string } = { userId };
-    if (phoneNumber) payload.contact = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
-    if (email) payload.email = email;
-    if (name) payload.name = name;
+    const payload = { 
+        userId, 
+        contact: phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`, 
+        email, 
+        name 
+    };
 
     const resp = await fetch("/api/create-contact", {
       method: "POST",
@@ -37,12 +39,11 @@ async function createRazorpayContact(userId: string, phoneNumber?: string, email
       body: JSON.stringify(payload)
     });
 
+    const responseData = await resp.json();
     if (!resp.ok) {
-      const errorData = await resp.json();
-      console.error(`Razorpay contact creation API failed: ${errorData.error || resp.statusText}`);
+      console.error(`Razorpay contact creation API failed: ${responseData.error || resp.statusText}`);
     } else {
-        const data = await resp.json();
-        console.log("Razorpay contact creation initiated, server will update Firestore:", data);
+        console.log("Razorpay contact creation initiated, server will update Firestore:", responseData);
     }
   } catch (error) {
     console.error("Error calling create-contact API:", error);
