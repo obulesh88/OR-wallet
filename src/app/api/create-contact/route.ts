@@ -11,15 +11,24 @@ export async function POST(req: Request) {
       return Response.json({ error: 'userId is required' }, { status: 400 });
     }
 
+    // Use environment variables for sensitive keys
+    const supabaseUrl = 'https://nwxgjyamiborsgfnzqcj.supabase.co';
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseServiceRoleKey) {
+        console.error('Supabase service role key is not set in environment variables.');
+        return Response.json({ error: 'Server configuration error.' }, { status: 500 });
+    }
+
     // Call Supabase function to create Razorpay contact
     const res = await fetch(
-      "https://nwxgjyamiborsgfnzqcj.supabase.co/functions/v1/create-razorpay-contact",
+      `${supabaseUrl}/functions/v1/create-razorpay-contact`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eGdqeWFtaWJvcnNnZm56cWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY0NTg0MDAsImV4cCI6MjAzMjAzNDQwMH0.Pczifn_iyRT616sB0N_aQENY1EC2i3F2AFpaBvT1S8w",
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53eGdqeWFtaWJvcnNnZm56cWNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY0NTg0MDAsImV4cCI6MjAzMjAzNDQwMH0.Pczifn_iyRT616sB0N_aQENY1EC2i3F2AFpaBvT1S8w"
+          // The service_role key has super admin rights and should be used for server-to-server calls.
+          "Authorization": `Bearer ${supabaseServiceRoleKey}`
         },
         body: JSON.stringify({ userId, contact, email, name }),
       }
@@ -29,6 +38,7 @@ export async function POST(req: Request) {
 
     if (!res.ok) {
       // Forward the error from the Supabase function
+      console.error('Supabase function error:', data);
       return Response.json({ error: data.error || 'Failed to create Razorpay contact' }, { status: res.status });
     }
 
