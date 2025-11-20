@@ -23,27 +23,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 
 async function createRazorpayContact(userId: string, phoneNumber: string, email: string | null, name: string) {
-    try {
-      const resp = await fetch('/api/create-contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, name, email, phone: phoneNumber })
-      });
-  
-      const result = await resp.json();
-  
-      if (!resp.ok) {
-        throw new Error(result.error || 'Failed to create Razorpay contact.');
-      }
-  
-      console.log('Successfully created/updated contact and user data:', result.contactId);
-      return result;
-  
-    } catch (error: any) {
-      console.error('Error during contact/user creation:', error.message);
-      // Re-throw the error to be caught by the onSubmit handler
-      throw error;
+    const resp = await fetch('/api/create-contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, name, email, phone: phoneNumber })
+    });
+
+    const result = await resp.json();
+
+    if (!resp.ok) {
+      throw new Error(result.error || 'Failed to create user and Razorpay contact.');
     }
+    
+    console.log('Successfully created user and contact via API:', result.contactId);
+    return result;
 }
 
 const formSchema = z.object({
@@ -110,7 +103,6 @@ export default function LoginPage() {
           displayName: signUpData.name
         });
         
-        // This function now creates the user in Firestore AND the Razorpay contact
         await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
 
         toast({
