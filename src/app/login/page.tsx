@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc, Firestore } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -40,27 +40,28 @@ async function createRazorpayContact(userId: string, phoneNumber: string, email:
     
     const responseData = await resp.json();
 
-    if (!resp.ok) {
-      console.error(`Razorpay contact creation failed via Supabase: ${responseData.error || resp.statusText}`);
+    if (!resp.ok || !responseData.id) {
+      console.error(`Razorpay contact creation failed: ${responseData.error || 'No ID returned'}`);
       return null;
     } 
     
-    console.log("Razorpay contact created via Supabase:", responseData);
+    console.log("Razorpay contact created:", responseData);
     
-    // If contact is created successfully, update Firestore with the contact ID
-    if (responseData.id) {
-        const adminApiResp = await fetch('/api/update-user-contact', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, razorpayContactId: responseData.id })
-        });
-        if (!adminApiResp.ok) {
-             const adminError = await adminApiResp.json();
-             console.error(`Failed to update user with Razorpay contact ID: ${adminError.error}`);
-        }
+    // Update Firestore with the new contact ID
+    const adminApiResp = await fetch('/api/update-user-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, razorpayContactId: responseData.id })
+    });
+
+    if (!adminApiResp.ok) {
+         const adminError = await adminApiResp.json();
+         console.error(`Failed to update user with Razorpay contact ID: ${adminError.error}`);
+         // The contact was created in Razorpay, but Firestore update failed.
+         // This might need a reconciliation process. For now, we return the ID.
     }
 
-    return responseData.id || null;
+    return responseData.id;
 
   } catch (error) {
     console.error("Error calling create-rzp-contact API:", error);
