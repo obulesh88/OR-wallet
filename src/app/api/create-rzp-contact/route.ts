@@ -17,8 +17,10 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": supabaseServiceRoleKey, // Correct header for service_role key
-          "Authorization": `Bearer ${supabaseServiceRoleKey}`, // Keep for compatibility if function uses it
+          // Supabase Edge Functions require the service_role key to be in the 'apikey' header for server-side calls.
+          "apikey": supabaseServiceRoleKey,
+          // The Authorization header is for user JWTs, not service keys.
+          "Authorization": `Bearer ${supabaseServiceRoleKey}`,
         },
         body: JSON.stringify(payload),
       }
