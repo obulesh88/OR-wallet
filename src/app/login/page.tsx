@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -74,6 +74,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues | SignUpFormValues>({
     resolver: zodResolver(isSignUp ? signUpSchema : formSchema),
@@ -93,9 +94,11 @@ export default function LoginPage() {
   }
 
   const onSubmit = async (data: LoginFormValues | SignUpFormValues) => {
+    setIsSubmitting(true);
     const auth = getAuth(app);
     if (!firestore) {
         toast({ variant: "destructive", title: "Error", description: "Database not available. Please try again later." });
+        setIsSubmitting(false);
         return;
     }
     try {
@@ -142,14 +145,14 @@ export default function LoginPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
         
-        // Asynchronously create the Razorpay contact and update the user doc.
-        // We don't block the UI for this.
-        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
+        // Wait for the contact to be created before proceeding.
+        await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
 
         toast({
           title: 'Account Created',
           description: 'You have been successfully signed up.',
         });
+        router.push('/dashboard');
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
         user = userCredential.user;
@@ -174,15 +177,16 @@ export default function LoginPage() {
              console.warn(`Cannot create razorpay contact for user ${user.uid} due to missing phone number or display name.`);
           }
         }
+        router.push('/dashboard');
       }
-      
-      router.push('/dashboard');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Authentication Failed',
         description: error.message,
       });
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
@@ -212,7 +216,7 @@ export default function LoginPage() {
                     <FormItem>
                       <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John Doe" {...field} />
+                        <Input placeholder="John Doe" {...field} disabled={isSubmitting} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -226,7 +230,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
+                      <Input placeholder="name@example.com" {...field} disabled={isSubmitting}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -239,7 +243,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -257,7 +261,7 @@ export default function LoginPage() {
                           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                             <span className="text-gray-500 sm:text-sm">+91</span>
                           </div>
-                          <Input type="tel" placeholder="98765 43210" {...field} className="pl-10" />
+                          <Input type="tel" placeholder="98765 43210" {...field} className="pl-10" disabled={isSubmitting}/>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -275,6 +279,7 @@ export default function LoginPage() {
                           <Checkbox
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            disabled={isSubmitting}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
@@ -291,8 +296,8 @@ export default function LoginPage() {
                   )}
                 />
               )}
-              <Button type="submit" className="w-full">
-                {isSignUp ? 'Sign Up' : 'Sign In'}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? (isSignUp ? 'Signing Up...' : 'Signing In...') : (isSignUp ? 'Sign Up' : 'Sign In')}
               </Button>
             </form>
           </Form>
@@ -300,14 +305,14 @@ export default function LoginPage() {
             {isSignUp ? (
               <>
                 Already have an account?{' '}
-                <Button variant="link" className="p-0 h-auto" onClick={() => setIsSignUp(false)}>
+                <Button variant="link" className="p-0 h-auto" onClick={() => setIsSignUp(false)} disabled={isSubmitting}>
                   Sign In
                 </Button>
               </>
             ) : (
               <>
                 Don't have an account?{' '}
-                <Button variant="link" className="p-0 h-auto" onClick={() => setIsSignUp(true)}>
+                <Button variant="link" className="p-0 h-auto" onClick={() => setIsSignUp(true)} disabled={isSubmitting}>
                   Sign Up
                 </Button>
               </>
