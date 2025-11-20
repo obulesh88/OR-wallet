@@ -1,65 +1,53 @@
 
-import { admin } from '@/firebase/admin';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import { admin } from "@/firebase/admin";
+import Razorpay from "razorpay";
 
-export async function POST(req: NextRequest) {
+// Initialize Razorpay
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID!,
+  key_secret: process.env.RAZORPAY_KEY_SECRET!,
+});
+
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { userId, contact, email, name } = body;
+    const { userId, name, email, phone } = await req.json();
 
-    if (!userId || !contact || !name) {
-      return NextResponse.json({ error: 'userId, contact, and name are required' }, { status: 400 });
+    if (!userId || !name || !email || !phone) {
+      return NextResponse.json(
+        { error: "Missing required fields: userId, name, email, phone" },
+        { status: 400 }
+      );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // 1. Create a new contact in Razorpay
+    const contact = await razorpay.customers.create({
+      name,
+      email,
+      contact: phone.startsWith('+91') ? phone : `+91${phone}`,
+    });
 
-    if (!supabaseUrl) {
-      console.error('Supabase URL is not set in environment variables.');
-      return NextResponse.json({ error: 'Server configuration error: NEXT_PUBLIC_SUPABASE_URL is missing.' }, { status: 500 });
-    }
-    if (!supabaseServiceRoleKey) {
-        console.error('Supabase service role key is not set in environment variables.');
-        return NextResponse.json({ error: 'Server configuration error: SUPABASE_SERVICE_ROLE_KEY is missing.' }, { status: 500 });
-    }
-
-    // Call Supabase function to create Razorpay contact
-    const res = await fetch(
-      `${supabaseUrl}/functions/v1/create-razorpay-contact`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": supabaseServiceRoleKey,
-          "Authorization": `Bearer ${supabaseServiceRoleKey}`
-        },
-        body: JSON.stringify({ name, email, contact }),
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      // Forward the error from the Supabase function
-      console.error('Supabase function returned an error:', { status: res.status, data });
-      return NextResponse.json({ error: data.error || 'Failed to create Razorpay contact via Supabase function' }, { status: res.status });
+    if (!contact || !contact.id) {
+        throw new Error("Failed to create Razorpay contact.");
     }
 
-    // If contact is created successfully, update Firestore with the contact ID
-    if (data.id) {
-      const userRef = admin.firestore().collection('users').doc(userId);
-      await userRef.update({
-        razorpayContactId: data.id,
-      });
-      console.log(`Successfully updated user ${userId} with razorpayContactId ${data.id}`);
-      return NextResponse.json({ id: data.id, message: 'Contact created and user updated successfully.' }, { status: 200 });
-    } else {
-        console.error('Supabase function response did not include a contact ID.', data);
-        return NextResponse.json({ error: 'Failed to get contact ID from Supabase function.' }, { status: 500 });
-    }
+    // 2. Store the Razorpay contact ID in Firestore
+    const userRef = admin.firestore().collection("users").doc(userId);
+    await userRef.update({
+      razorpayContactId: contact.id,
+    });
 
-  } catch (e: any) {
-    console.error("Error in /api/create-contact:", e);
-    return NextResponse.json({ error: e.message || 'An internal server error occurred' }, { status: 500 });
+    console.log(`Successfully created Razorpay contact ${contact.id} and updated user ${userId}.`);
+
+    return NextResponse.json({
+      success: true,
+      contactId: contact.id,
+    });
+
+  } catch (err: any) {
+    console.error("Error in /api/create-contact:", err);
+    // In case of Razorpay error, the message might be in err.error.description
+    const errorMessage = err.error?.description || err.message || "An internal server error occurred";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -25,49 +25,29 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 
 async function createRazorpayContact(userId: string, phoneNumber: string, email: string | null, name: string) {
-  try {
-    const payload = { 
-        name, 
-        email, 
-        contact: phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`,
-    };
-
-    const resp = await fetch("/api/create-rzp-contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    
-    const responseData = await resp.json();
-
-    if (!resp.ok || !responseData.id) {
-      console.error(`Razorpay contact creation failed: ${responseData.error || 'No ID returned'}`);
-      return null;
-    } 
-    
-    console.log("Razorpay contact created:", responseData);
-    
-    // Update Firestore with the new contact ID
-    const adminApiResp = await fetch('/api/update-user-contact', {
+    try {
+      const resp = await fetch('/api/create-contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, razorpayContactId: responseData.id })
-    });
-
-    if (!adminApiResp.ok) {
-         const adminError = await adminApiResp.json();
-         console.error(`Failed to update user with Razorpay contact ID: ${adminError.error}`);
-         // The contact was created in Razorpay, but Firestore update failed.
-         // This might need a reconciliation process. For now, we return the ID.
+        body: JSON.stringify({ userId, name, email, phone: phoneNumber })
+      });
+  
+      const result = await resp.json();
+  
+      if (!resp.ok) {
+        throw new Error(result.error || 'Failed to create Razorpay contact.');
+      }
+  
+      console.log('Successfully created Razorpay contact:', result.contactId);
+      return result.contactId;
+  
+    } catch (error: any) {
+      console.error('Error during Razorpay contact creation:', error.message);
+      // Return null but don't block the sign-up flow.
+      // The contact can be created on the next login.
+      return null;
     }
-
-    return responseData.id;
-
-  } catch (error) {
-    console.error("Error calling create-rzp-contact API:", error);
-    return null;
   }
-}
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -129,10 +109,7 @@ export default function LoginPage() {
         await updateProfile(user, {
           displayName: signUpData.name
         });
-
-        // This function now handles creating the contact and updating the user record.
-        const razorpayContactId = await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
-
+        
         const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
         const userRef = doc(firestore, 'users', user.uid);
         const userData = {
@@ -151,11 +128,10 @@ export default function LoginPage() {
           payoutLastAmount: 0,
           payoutLastId: "",
           payoutStatus: "N/A",
-          razorpayContactId: razorpayContactId || "",
+          razorpayContactId: "",
           razorpayFundAccount: "",
         };
         
-        // This will create the user document in Firestore.
         await setDoc(userRef, userData).catch(async (serverError) => {
           const permissionError = new FirestorePermissionError({
             path: userRef.path,
@@ -165,6 +141,10 @@ export default function LoginPage() {
   
           errorEmitter.emit('permission-error', permissionError);
         });
+        
+        // Asynchronously create the Razorpay contact and update the user doc.
+        // We don't block the UI for this.
+        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
 
         toast({
           title: 'Account Created',
