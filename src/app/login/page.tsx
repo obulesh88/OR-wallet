@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -19,8 +19,6 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
 
@@ -38,16 +36,15 @@ async function createRazorpayContact(userId: string, phoneNumber: string, email:
         throw new Error(result.error || 'Failed to create Razorpay contact.');
       }
   
-      console.log('Successfully created Razorpay contact:', result.contactId);
-      return result.contactId;
+      console.log('Successfully created/updated contact and user data:', result.contactId);
+      return result;
   
     } catch (error: any) {
-      console.error('Error during Razorpay contact creation:', error.message);
-      // Return null but don't block the sign-up flow.
-      // The contact can be created on the next login.
-      return null;
+      console.error('Error during contact/user creation:', error.message);
+      // Re-throw the error to be caught by the onSubmit handler
+      throw error;
     }
-  }
+}
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -113,39 +110,7 @@ export default function LoginPage() {
           displayName: signUpData.name
         });
         
-        const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
-        const userRef = doc(firestore, 'users', user.uid);
-        const userData = {
-          uid: user.uid,
-          email: user.email,
-          displayName: signUpData.name,
-          phoneNumber: `+91${signUpData.phoneNumber}`,
-          photoURL: user.photoURL,
-          balance: 0,
-          oraBalance: 100,
-          address: uniqueAddress,
-          accountHolderName: "",
-          accountNumber: "",
-          bankName: "",
-          ifscCode: "",
-          payoutLastAmount: 0,
-          payoutLastId: "",
-          payoutStatus: "N/A",
-          razorpayContactId: "",
-          razorpayFundAccount: "",
-        };
-        
-        await setDoc(userRef, userData).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'create',
-            requestResourceData: userData,
-          } satisfies SecurityRuleContext);
-  
-          errorEmitter.emit('permission-error', permissionError);
-        });
-        
-        // Wait for the contact to be created before proceeding.
+        // This function now creates the user in Firestore AND the Razorpay contact
         await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
 
         toast({

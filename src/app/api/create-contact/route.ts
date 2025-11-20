@@ -1,4 +1,5 @@
 
+
 import { NextResponse } from "next/server";
 import { admin } from "@/firebase/admin";
 import Razorpay from "razorpay";
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
+    
     // 1. Create a new contact in Razorpay
     const contact = await razorpay.customers.create({
       name,
@@ -30,14 +31,29 @@ export async function POST(req: Request) {
     if (!contact || !contact.id) {
         throw new Error("Failed to create Razorpay contact.");
     }
-
-    // 2. Store the Razorpay contact ID in Firestore
+    
+    // 2. Create the user document in Firestore
     const userRef = admin.firestore().collection("users").doc(userId);
-    await userRef.update({
-      razorpayContactId: contact.id,
-    });
+    const uniqueAddress = `ORA${userId.substring(0, 8).toUpperCase()}`;
+    const userData = {
+        uid: userId,
+        email: email,
+        displayName: name,
+        phoneNumber: phone.startsWith('+91') ? phone : `+91${phone}`,
+        photoURL: '', // Initially empty
+        balance: 0,
+        oraBalance: 100, // Starting bonus
+        address: uniqueAddress,
+        accountHolderName: "",
+        accountNumber: "",
+        bankName: "",
+        ifscCode: "",
+        razorpayContactId: contact.id, // Add the razorpay contact ID
+    };
 
-    console.log(`Successfully created Razorpay contact ${contact.id} and updated user ${userId}.`);
+    await userRef.set(userData);
+
+    console.log(`Successfully created user ${userId} and Razorpay contact ${contact.id}.`);
 
     return NextResponse.json({
       success: true,
@@ -51,3 +67,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
+
