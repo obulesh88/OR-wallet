@@ -103,7 +103,11 @@ export default function LoginPage() {
           displayName: signUpData.name
         });
         
-        await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
+        // Not awaiting this to avoid blocking the UI
+        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name).catch(err => {
+            console.error("Failed to create razorpay contact in background:", err);
+             // Optionally, you could show a non-blocking toast here
+        });
 
         toast({
           title: 'Account Created',
