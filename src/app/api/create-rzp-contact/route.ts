@@ -17,14 +17,21 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": supabaseServiceRoleKey,
-          "Authorization": `Bearer ${supabaseServiceRoleKey}`,
+          "apikey": supabaseServiceRoleKey, // Correct header for service_role key
+          "Authorization": `Bearer ${supabaseServiceRoleKey}`, // Keep for compatibility if function uses it
         },
         body: JSON.stringify(payload),
       }
     );
 
     const data = await res.json();
+
+    if (!res.ok) {
+        // Log the error from Supabase function for better debugging
+        console.error("Supabase function returned an error:", data);
+        return NextResponse.json({ error: data.error || `Supabase function failed with status ${res.status}` }, { status: res.status });
+    }
+    
     return NextResponse.json(data, { status: res.status });
 
   } catch (error: any) {
