@@ -14,25 +14,27 @@ export async function POST(req: Request) {
   try {
     const { userId, name, email, phone } = await req.json();
 
-    if (!userId || !name || !email || !phone) {
+    if (!userId || !name || !email) {
       return NextResponse.json(
-        { error: "Missing required fields: userId, name, email, phone" },
+        { error: "Missing required fields: userId, name, email" },
         { status: 400 }
       );
     }
     
-    // 1. Create a new contact in Razorpay
-    const contact = await razorpay.customers.create({
-      name,
-      email,
-      contact: phone.startsWith('+91') ? phone : `+91${phone}`,
-    });
-
-    if (!contact || !contact.id) {
-        throw new Error("Failed to create Razorpay contact.");
+    let contact;
+    try {
+      contact = await razorpay.customers.create({
+        name,
+        email,
+        contact: phone.startsWith('+91') ? phone : `+91${phone}`,
+      });
+    } catch (razorpayError: any) {
+      console.error("Razorpay contact creation failed:", razorpayError);
+      // Still proceed to create the user in Firestore, but log the error.
+      // The razorpayContactId will be missing, and can be backfilled later.
     }
-    
-    // 2. Create the user document in Firestore
+
+
     const userRef = admin.firestore().collection("users").doc(userId);
     const uniqueAddress = `ORA${userId.substring(0, 8).toUpperCase()}`;
     const userData = {
@@ -48,23 +50,21 @@ export async function POST(req: Request) {
         accountNumber: "",
         bankName: "",
         ifscCode: "",
-        razorpayContactId: contact.id, // Add the razorpay contact ID
+        razorpayContactId: contact?.id || "", // Save contact ID if it exists
     };
 
     await userRef.set(userData);
 
-    console.log(`Successfully created user ${userId} and Razorpay contact ${contact.id}.`);
+    console.log(`Successfully created user ${userId}. Razorpay contact ID: ${contact?.id || 'N/A'}`);
 
     return NextResponse.json({
       success: true,
-      contactId: contact.id,
+      contactId: contact?.id || null,
     });
 
   } catch (err: any) {
     console.error("Error in /api/create-contact:", err);
-    // In case of Razorpay error, the message might be in err.error.description
-    const errorMessage = err.error?.description || err.message || "An internal server error occurred";
+    const errorMessage = err.message || "An internal server error occurred";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
-
