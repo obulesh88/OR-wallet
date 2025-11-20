@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, Firestore } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, Firestore } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -172,6 +172,27 @@ export default function LoginPage() {
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
         user = userCredential.user;
+
+        // Check and create Razorpay Contact ID on login if it's missing
+        const userRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists() && !userDoc.data().razorpayContactId) {
+          toast({
+            title: 'Finalizing Account',
+            description: 'Please wait while we set up your payment details.',
+          });
+          const userData = userDoc.data();
+          const phoneNumber = (userData.phoneNumber || '').replace('+91', '');
+          const displayName = userData.displayName || 'N/A';
+          const email = userData.email || null;
+
+          if (phoneNumber && displayName !== 'N/A') {
+             await createRazorpayContact(user.uid, phoneNumber, email, displayName);
+          } else {
+             console.warn(`Cannot create razorpay contact for user ${user.uid} due to missing phone number or display name.`);
+          }
+        }
       }
       
       router.push('/dashboard');
