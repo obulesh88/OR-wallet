@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -58,6 +58,32 @@ const signUpSchema = formSchema.extend({
 type LoginFormValues = z.infer<typeof formSchema>;
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
+async function createNewUserDocument(
+    firestore: Firestore, 
+    user: User, 
+    signUpData: SignUpFormValues,
+    razorpayContactId: string | null
+) {
+    const userRef = doc(firestore, "users", user.uid);
+    const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
+    
+    await setDoc(userRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: signUpData.name,
+        phoneNumber: `+91${signUpData.phoneNumber}`,
+        photoURL: '',
+        balance: 0,
+        oraBalance: 100,
+        address: uniqueAddress,
+        accountHolderName: "",
+        accountNumber: "",
+        bankName: "",
+        ifscCode: "",
+        razorpayContactId: razorpayContactId || "",
+    });
+}
+
 export default function LoginPage() {
   const app = useFirebaseApp();
   const firestore = useFirestore();
@@ -104,26 +130,8 @@ export default function LoginPage() {
         });
         
         const contactResult = await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
-
-        const userRef = doc(firestore, "users", user.uid);
-        const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
         
-        await setDoc(userRef, {
-            uid: user.uid,
-            email: user.email,
-            displayName: signUpData.name,
-            phoneNumber: `+91${signUpData.phoneNumber}`,
-            photoURL: '',
-            balance: 0,
-            oraBalance: 100,
-            address: uniqueAddress,
-            accountHolderName: "",
-            accountNumber: "",
-            bankName: "",
-            ifscCode: "",
-            razorpayContactId: contactResult.contactId || "",
-        });
-
+        await createNewUserDocument(firestore, user, signUpData, contactResult.contactId);
 
         toast({
           title: 'Account Created',
