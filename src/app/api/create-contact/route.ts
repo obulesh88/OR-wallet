@@ -34,28 +34,15 @@ export async function POST(req: Request) {
       // The razorpayContactId will be missing, and can be backfilled later.
     }
 
+    // This part is now handled on the client, but we'll leave the contact creation part
+    // and just update the existing user doc with the contact id.
 
     const userRef = admin.firestore().collection("users").doc(userId);
-    const uniqueAddress = `ORA${userId.substring(0, 8).toUpperCase()}`;
-    const userData = {
-        uid: userId,
-        email: email,
-        displayName: name,
-        phoneNumber: phone.startsWith('+91') ? phone : `+91${phone}`,
-        photoURL: '', // Initially empty
-        balance: 0,
-        oraBalance: 100, // Starting bonus
-        address: uniqueAddress,
-        accountHolderName: "",
-        accountNumber: "",
-        bankName: "",
-        ifscCode: "",
-        razorpayContactId: contact?.id || "", // Save contact ID if it exists
-    };
+    await userRef.set({
+      razorpayContactId: contact?.id || "",
+    }, { merge: true });
 
-    await userRef.set(userData);
-
-    console.log(`Successfully created user ${userId}. Razorpay contact ID: ${contact?.id || 'N/A'}`);
+    console.log(`Successfully updated user ${userId} with Razorpay contact ID: ${contact?.id || 'N/A'}`);
 
     return NextResponse.json({
       success: true,

@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -32,10 +32,10 @@ async function createRazorpayContact(userId: string, phoneNumber: string, email:
     const result = await resp.json();
 
     if (!resp.ok) {
-      throw new Error(result.error || 'Failed to create user and Razorpay contact.');
+      throw new Error(result.error || 'Failed to create Razorpay contact.');
     }
     
-    console.log('Successfully created user and contact via API:', result.contactId);
+    console.log('Successfully created contact via API:', result.contactId);
     return result;
 }
 
@@ -103,11 +103,27 @@ export default function LoginPage() {
           displayName: signUpData.name
         });
         
-        // Not awaiting this to avoid blocking the UI
-        createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name).catch(err => {
-            console.error("Failed to create razorpay contact in background:", err);
-             // Optionally, you could show a non-blocking toast here
+        const contactResult = await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
+
+        const userRef = doc(firestore, "users", user.uid);
+        const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
+        
+        await setDoc(userRef, {
+            uid: user.uid,
+            email: user.email,
+            displayName: signUpData.name,
+            phoneNumber: `+91${signUpData.phoneNumber}`,
+            photoURL: '',
+            balance: 0,
+            oraBalance: 100,
+            address: uniqueAddress,
+            accountHolderName: "",
+            accountNumber: "",
+            bankName: "",
+            ifscCode: "",
+            razorpayContactId: contactResult.contactId || "",
         });
+
 
         toast({
           title: 'Account Created',
@@ -118,7 +134,6 @@ export default function LoginPage() {
         const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
         user = userCredential.user;
 
-        // Check and create Razorpay Contact ID on login if it's missing
         const userRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userRef);
 
