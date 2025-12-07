@@ -5,25 +5,33 @@ service cloud.firestore {
 
     // Users collection (uppercase U)
     match /Users/{userId} {
-      allow create, read, update: if request.auth != null && request.auth.uid == userId;
+      // User can access ONLY their own user document
+      allow create, read, update: 
+        if request.auth != null && request.auth.uid == userId;
+
+      // Transactions subcollection (lowercase transactions)
+      match /transactions/{transactionId} {
+        // User can create only if they are the owner
+        allow create: 
+          if request.auth != null &&
+             request.resource.data.userId == request.auth.uid;
+
+        // User can read/update/delete only their own transactions
+        allow read, update, delete:
+          if request.auth != null &&
+             resource.data.userId == request.auth.uid;
+      }
 
       // Wallets subcollection
       match /wallets/{walletId} {
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      }
+        allow create:
+          if request.auth != null &&
+             request.resource.data.userId == request.auth.uid;
 
-      // Transactions subcollection
-      match /transactions/{transactionId} {
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow read, update, delete:
+          if request.auth != null &&
+             resource.data.userId == request.auth.uid;
       }
-    }
-
-    // Optional: top-level wallets collection
-    match /wallets/{walletId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }

@@ -93,6 +93,7 @@ export function ConvertCard() {
 
         // Add transaction record
         const transactionData = {
+          userId: user.uid,
           type: "convert",
           description: `Converted ${oraAmount.toLocaleString()} ORA to INR`,
           amount: -oraAmount,

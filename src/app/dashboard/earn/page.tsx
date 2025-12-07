@@ -90,6 +90,7 @@ export default function EarnPage() {
 
         const transactionsColRef = collection(firestore, 'Users', user.uid, 'transactions');
         const transactionData = {
+            userId: user.uid,
             type: 'earn',
             description: description,
             amount: rewardAmount,
