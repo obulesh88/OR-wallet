@@ -56,12 +56,12 @@ export default function WithdrawalsPage() {
 
     useEffect(() => {
         if (user && firestore) {
-          const userDocRef = doc(firestore, 'Users', user.uid);
+          const userDocRef = doc(firestore, 'users', user.uid);
           const unsubscribe = onSnapshot(
             userDocRef,
             (doc) => {
               if (doc.exists()) {
-                setUserCoins(doc.data().coins || 0);
+                setUserCoins(doc.data().oraBalance || 0);
               }
             },
             async (err) => {
