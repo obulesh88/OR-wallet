@@ -9,47 +9,34 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
+import { doc, setDoc, Firestore } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import Link from 'next/link';
-
-async function createRazorpayContact(userId: string, phoneNumber: string, email: string | null, name: string) {
-    const resp = await fetch('/api/create-contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, name, email, phone: phoneNumber })
-    });
-
-    const result = await resp.json();
-
-    if (!resp.ok) {
-      throw new Error(result.error || 'Failed to create Razorpay contact.');
-    }
-    
-    console.log('Successfully created contact via API:', result.contactId);
-    return result;
-}
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().optional(),
   phoneNumber: z.string().optional(),
+  upiId: z.string().optional(),
   terms: z.boolean().optional(),
 });
 
 const signUpSchema = formSchema.extend({
     name: z.string().min(1, 'Name is required'),
-    phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').max(10, 'Phone number must be at most 10 digits'),
+    phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').max(13, 'Phone number must be at most 13 digits (including country code)'),
+    upiId: z.string().min(3, "Please enter a valid UPI ID."),
     terms: z.literal(true, {
         errorMap: () => ({ message: 'You must accept the terms and conditions.' }),
     }),
@@ -61,26 +48,33 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 async function createNewUserDocument(
     firestore: Firestore, 
     user: User, 
-    signUpData: SignUpFormValues,
-    razorpayContactId: string | null
+    signUpData: SignUpFormValues
 ) {
     const userRef = doc(firestore, "users", user.uid);
     const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
     
-    await setDoc(userRef, {
+    const newUser = {
         uid: user.uid,
         email: user.email,
         displayName: signUpData.name,
-        phoneNumber: `+91${signUpData.phoneNumber}`,
+        phoneNumber: signUpData.phoneNumber.startsWith('+') ? signUpData.phoneNumber : `+91${signUpData.phoneNumber}`,
         photoURL: '',
         balance: 0,
-        oraBalance: 100,
+        oraBalance: 100, // Initial coin balance
         address: uniqueAddress,
-        accountHolderName: "",
-        accountNumber: "",
-        bankName: "",
-        ifscCode: "",
-        razorpayContactId: razorpayContactId || "",
+        upiId: signUpData.upiId,
+        createdAt: new Date(),
+        lastUpdated: new Date(),
+    };
+
+    setDoc(userRef, newUser)
+    .catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: userRef.path,
+        operation: 'create',
+        requestResourceData: newUser,
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
 }
 
@@ -99,6 +93,7 @@ export default function LoginPage() {
       password: '',
       name: '',
       phoneNumber: '',
+      upiId: '',
       terms: false,
     },
   });
@@ -117,21 +112,19 @@ export default function LoginPage() {
         setIsSubmitting(false);
         return;
     }
+
     try {
-      let user: User;
       if (isSignUp) {
         const signUpData = data as SignUpFormValues;
 
         const userCredential = await createUserWithEmailAndPassword(auth, signUpData.email, signUpData.password);
-        user = userCredential.user;
+        const user = userCredential.user;
 
         await updateProfile(user, {
           displayName: signUpData.name
         });
         
-        const contactResult = await createRazorpayContact(user.uid, signUpData.phoneNumber, user.email, signUpData.name);
-        
-        await createNewUserDocument(firestore, user, signUpData, contactResult.contactId);
+        await createNewUserDocument(firestore, user, signUpData);
 
         toast({
           title: 'Account Created',
@@ -139,28 +132,7 @@ export default function LoginPage() {
         });
         router.push('/dashboard');
       } else {
-        const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-        user = userCredential.user;
-
-        const userRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userRef);
-
-        if (userDoc.exists() && !userDoc.data().razorpayContactId) {
-          toast({
-            title: 'Finalizing Account',
-            description: 'Please wait while we set up your payment details.',
-          });
-          const userData = userDoc.data();
-          const phoneNumber = (userData.phoneNumber || '').replace('+91', '');
-          const displayName = userData.displayName || 'N/A';
-          const email = userData.email || null;
-
-          if (phoneNumber && displayName !== 'N/A') {
-             await createRazorpayContact(user.uid, phoneNumber, email, displayName);
-          } else {
-             console.warn(`Cannot create razorpay contact for user ${user.uid} due to missing phone number or display name.`);
-          }
-        }
+        await signInWithEmailAndPassword(auth, data.email, data.password);
         router.push('/dashboard');
       }
     } catch (error: any) {
@@ -248,6 +220,24 @@ export default function LoginPage() {
                           <Input type="tel" placeholder="98765 43210" {...field} className="pl-10" disabled={isSubmitting}/>
                         </div>
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              {isSignUp && (
+                 <FormField
+                  control={form.control}
+                  name="upiId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>UPI ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="yourname@bank" {...field} disabled={isSubmitting} />
+                      </FormControl>
+                       <FormDescription>
+                        You can add or change this later.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
