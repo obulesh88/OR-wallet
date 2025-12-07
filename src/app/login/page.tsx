@@ -16,7 +16,7 @@ import { useFirebaseApp, useFirestore } from '@/firebase';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -43,13 +43,16 @@ const signUpSchema = formSchema.extend({
 type LoginFormValues = z.infer<typeof formSchema>;
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
+function generateWalletAddress(userId: string) {
+    return `ORA${userId.substring(0, 8).toUpperCase()}`;
+}
+
 async function createNewUserDocument(
     firestore: Firestore, 
     user: User, 
     signUpData: SignUpFormValues
 ) {
     const userRef = doc(firestore, "Users", user.uid);
-    const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
     
     const newUser = {
         uid: user.uid,
@@ -57,8 +60,9 @@ async function createNewUserDocument(
         displayName: signUpData.name,
         phoneNumber: signUpData.phoneNumber.startsWith('+') ? signUpData.phoneNumber : `+91${signUpData.phoneNumber}`,
         photoURL: '',
-        coins: 100, // Initial coin balance
-        address: uniqueAddress,
+        coins: 0, // Initial coin balance
+        balance: 0, // Initial INR balance in paise
+        address: generateWalletAddress(user.uid),
         createdAt: serverTimestamp(),
         lastUpdated: serverTimestamp(),
     };
