@@ -23,7 +23,7 @@ export function ConvertCard() {
 
   useEffect(() => {
     if (user && firestore) {
-      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDocRef = doc(firestore, 'Users', user.uid);
       const unsubscribe = onSnapshot(userDocRef, 
         (doc) => {
           if (doc.exists()) {
@@ -66,8 +66,8 @@ export function ConvertCard() {
 
     setIsConverting(true);
 
-    const userDocRef = doc(firestore, "users", user.uid);
-    const transactionsColRef = collection(firestore, "users", user.uid, "transactions");
+    const userDocRef = doc(firestore, "Users", user.uid);
+    const transactionsColRef = collection(firestore, "Users", user.uid, "transactions");
 
     try {
       await runTransaction(firestore, async (transaction) => {

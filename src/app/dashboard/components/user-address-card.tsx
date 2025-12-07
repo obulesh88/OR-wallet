@@ -21,7 +21,7 @@ export function UserAddressCard() {
 
   useEffect(() => {
     if (user && firestore) {
-      const userDocRef = doc(firestore, "users", user.uid);
+      const userDocRef = doc(firestore, "Users", user.uid);
       const unsubscribe = onSnapshot(userDocRef, 
         (doc) => {
           if (doc.exists()) {

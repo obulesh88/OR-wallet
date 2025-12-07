@@ -3,25 +3,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only read their own document and cannot write to it from the client.
-    match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if false; 
+    // Users collection (uppercase U)
+    match /Users/{userId} {
+      allow create, read, update: if request.auth != null && request.auth.uid == userId;
+
+      // Wallets subcollection
+      match /wallets/{walletId} {
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      }
+
+      // Transactions subcollection
+      match /transactions/{transactionId} {
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      }
     }
 
-    // Users can create transactions, and read transactions where they are the sender or receiver.
-    match /Transactions/{transactionId} {
-      allow read: if request.auth != null && (resource.data.fromUserId == request.auth.uid || resource.data.toUserId == request.auth.uid);
-      allow create: if request.auth != null && request.resource.data.fromUserId == request.auth.uid;
-      allow update, delete: if false;
-    }
-
-    // Users can create their own withdrawal requests and read them. Admins can update.
-    match /Withdrawals/{withdrawalId} {
-      allow read, create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // In a real app, you'd have an admin role check here for updates.
-      allow update: if false; // For now, prevent client-side updates.
-      allow delete: if false;
+    // Optional: top-level wallets collection
+    match /wallets/{walletId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }

@@ -102,7 +102,7 @@ export function SendMoneyDialog({ onBankDetailsSubmit, open, onOpenChange, isEdi
       return;
     }
 
-    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDocRef = doc(firestore, 'Users', user.uid);
 
     updateDoc(userDocRef, data).then(() => {
       toast({

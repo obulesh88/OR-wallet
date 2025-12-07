@@ -57,7 +57,7 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (user && firestore) {
       setLoading(true);
-      const transColRef = collection(firestore, "users", user.uid, "transactions");
+      const transColRef = collection(firestore, "Users", user.uid, "transactions");
       const q = query(transColRef, orderBy("date", "desc"));
       
       const unsubscribe = onSnapshot(q, 

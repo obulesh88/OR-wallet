@@ -76,7 +76,7 @@ export default function EarnPage() {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to earn rewards." });
       return false;
     }
-    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDocRef = doc(firestore, 'Users', user.uid);
     try {
       await runTransaction(firestore, async (transaction) => {
         const userDoc = await transaction.get(userDocRef);
@@ -88,7 +88,7 @@ export default function EarnPage() {
         const newOraBalance = currentOraBalance + rewardAmount;
         transaction.update(userDocRef, { oraBalance: newOraBalance });
 
-        const transactionsColRef = collection(firestore, 'users', user.uid, 'transactions');
+        const transactionsColRef = collection(firestore, 'Users', user.uid, 'transactions');
         const transactionData = {
             type: 'earn',
             description: description,
