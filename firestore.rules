@@ -3,18 +3,25 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Allow user to read only their own user doc
-    match /users/{userId} {
+    // Users can only read their own document and cannot write to it from the client.
+    match /Users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // Deny writing from client
-      allow write: if false;
+      allow write: if false; 
+    }
 
-      // Transactions subcollection — user can read only
-      match /transactions/{transactionId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if false;  // Only server/functions can write
-      }
+    // Users can create transactions, and read transactions where they are the sender or receiver.
+    match /Transactions/{transactionId} {
+      allow read: if request.auth != null && (resource.data.fromUserId == request.auth.uid || resource.data.toUserId == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.fromUserId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Users can create their own withdrawal requests and read them. Admins can update.
+    match /Withdrawals/{withdrawalId} {
+      allow read, create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // In a real app, you'd have an admin role check here for updates.
+      allow update: if false; // For now, prevent client-side updates.
+      allow delete: if false;
     }
   }
 }

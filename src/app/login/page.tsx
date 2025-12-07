@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, Firestore } from 'firebase/firestore';
+import { doc, setDoc, Firestore, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useFirebaseApp, useFirestore } from '@/firebase';
@@ -29,14 +29,12 @@ const formSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().optional(),
   phoneNumber: z.string().optional(),
-  upiId: z.string().optional(),
   terms: z.boolean().optional(),
 });
 
 const signUpSchema = formSchema.extend({
     name: z.string().min(1, 'Name is required'),
     phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits').max(13, 'Phone number must be at most 13 digits (including country code)'),
-    upiId: z.string().min(3, "Please enter a valid UPI ID."),
     terms: z.literal(true, {
         errorMap: () => ({ message: 'You must accept the terms and conditions.' }),
     }),
@@ -50,7 +48,7 @@ async function createNewUserDocument(
     user: User, 
     signUpData: SignUpFormValues
 ) {
-    const userRef = doc(firestore, "users", user.uid);
+    const userRef = doc(firestore, "Users", user.uid);
     const uniqueAddress = `ORA${user.uid.substring(0, 8).toUpperCase()}`;
     
     const newUser = {
@@ -59,12 +57,10 @@ async function createNewUserDocument(
         displayName: signUpData.name,
         phoneNumber: signUpData.phoneNumber.startsWith('+') ? signUpData.phoneNumber : `+91${signUpData.phoneNumber}`,
         photoURL: '',
-        balance: 0,
-        oraBalance: 100, // Initial coin balance
+        coins: 100, // Initial coin balance
         address: uniqueAddress,
-        upiId: signUpData.upiId,
-        createdAt: new Date(),
-        lastUpdated: new Date(),
+        createdAt: serverTimestamp(),
+        lastUpdated: serverTimestamp(),
     };
 
     setDoc(userRef, newUser)
@@ -93,7 +89,6 @@ export default function LoginPage() {
       password: '',
       name: '',
       phoneNumber: '',
-      upiId: '',
       terms: false,
     },
   });
@@ -220,24 +215,6 @@ export default function LoginPage() {
                           <Input type="tel" placeholder="98765 43210" {...field} className="pl-10" disabled={isSubmitting}/>
                         </div>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              {isSignUp && (
-                 <FormField
-                  control={form.control}
-                  name="upiId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>UPI ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="yourname@bank" {...field} disabled={isSubmitting} />
-                      </FormControl>
-                       <FormDescription>
-                        You can add or change this later.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
