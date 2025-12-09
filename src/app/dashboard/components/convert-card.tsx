@@ -7,7 +7,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import { useToast } from "@/hooks/use-toast";
-import { collection, addDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, onSnapshot, serverTimestamp, runTransaction } from "firebase/firestore";
 import { ArrowRight, Coins, IndianRupee, Repeat } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -66,40 +66,66 @@ export function ConvertCard() {
 
     setIsConverting(true);
 
-    const transactionsColRef = collection(firestore, "transactions");
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const transactionsColRef = collection(firestore, `users/${user.uid}/transactions`);
 
     // Create a transaction document. A backend function will process this.
     const transactionData = {
       userId: user.uid,
       type: "convert",
-      description: `Conversion request: ${oraAmount.toLocaleString()} ORA to INR`,
+      description: `Conversion: ${oraAmount.toLocaleString()} ORA to INR`,
       amount: oraAmount,
       inrAmount: inrAmount,
       date: serverTimestamp(),
-      status: "Pending",
+      status: "Completed",
     };
 
-    addDoc(transactionsColRef, transactionData).then(() => {
-       toast({
-        title: "Conversion Request Submitted",
-        description: `Your request to convert ${oraAmount.toLocaleString()} ORA is being processed.`,
-      });
-      setOraAmount('');
-    }).catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: transactionsColRef.path,
-        operation: 'create',
-        requestResourceData: transactionData,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-      toast({
-        variant: "destructive",
-        title: "Conversion Failed",
-        description: "Could not submit your conversion request.",
-      });
-    }).finally(() => {
-      setIsConverting(false);
-    });
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const userDoc = await transaction.get(userDocRef);
+            if (!userDoc.exists()) {
+                throw "User document does not exist!";
+            }
+            
+            const newOraBalance = (userDoc.data().oraBalance || 0) - oraAmount;
+            const newInrBalance = (userDoc.data().balance || 0) + (inrAmount * 100);
+
+            if (newOraBalance < 0) {
+                throw "Insufficient ORA balance.";
+            }
+
+            transaction.update(userDocRef, { 
+                oraBalance: newOraBalance,
+                balance: newInrBalance 
+            });
+            
+            const newTransactionRef = doc(transactionsColRef);
+            transaction.set(newTransactionRef, transactionData);
+        });
+
+        toast({
+            title: "Conversion Successful",
+            description: `You have converted ${oraAmount.toLocaleString()} ORA to ₹${inrAmount.toFixed(3)}.`,
+        });
+        setOraAmount('');
+
+    } catch (e: any) {
+        console.error("Conversion failed: ", e);
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'update',
+            requestResourceData: { oraBalance: oraBalance - oraAmount, balance: oraBalance * conversionRate * 100 },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+
+        toast({
+            variant: "destructive",
+            title: "Conversion Failed",
+            description: e.message || "Could not complete the conversion.",
+        });
+    } finally {
+        setIsConverting(false);
+    }
   };
 
 
@@ -160,7 +186,7 @@ export function ConvertCard() {
         </div>
 
         <Button size="lg" className="w-full" onClick={handleConvert} disabled={!hasSufficientBalance || isConverting || oraAmount === '' || oraAmount <= 0}>
-          {isConverting ? 'Submitting...' : 'Request Conversion'}
+          {isConverting ? 'Converting...' : 'Convert Now'}
         </Button>
       </CardContent>
     </Card>

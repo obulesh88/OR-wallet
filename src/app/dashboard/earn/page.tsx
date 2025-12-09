@@ -76,30 +76,29 @@ export default function EarnPage() {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to earn rewards." });
       return false;
     }
-    const userDocRef = doc(firestore, 'users', user.uid);
-    // A backend function should process this transaction securely.
-    // For now, we optimistically update the UI and create a transaction record.
-    try {
-      const transactionsColRef = collection(firestore, 'transactions');
-      const transactionData = {
-          userId: user.uid,
-          type: 'earn',
-          description: description,
-          amount: rewardAmount,
-          date: serverTimestamp(),
-          status: 'Completed',
-      };
-      
-      await addDoc(transactionsColRef, transactionData);
 
-      // This part is insecure and should be handled by a backend function.
-      // We are leaving it here for demonstration purposes of optimistic UI updates.
-      // In a real app, you'd remove this and have a backend update the balance.
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const transactionsColRef = collection(firestore, `users/${user.uid}/transactions`);
+
+    const transactionData = {
+        userId: user.uid,
+        type: 'earn',
+        description: description,
+        amount: rewardAmount,
+        date: serverTimestamp(),
+        status: 'Completed',
+    };
+
+    try {
       await runTransaction(firestore, async (transaction) => {
           const userDoc = await transaction.get(userDocRef);
           if (!userDoc.exists()) throw new Error("User not found");
+          
           const newOraBalance = (userDoc.data().oraBalance || 0) + rewardAmount;
           transaction.update(userDocRef, { oraBalance: newOraBalance });
+
+          const newTransactionRef = doc(transactionsColRef);
+          transaction.set(newTransactionRef, transactionData);
       });
 
       toast({
@@ -109,20 +108,19 @@ export default function EarnPage() {
       return true;
 
     } catch (e: any) {
+        console.error("Reward failed: ", e);
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'update',
+            requestResourceData: { oraBalance: `current_balance + ${rewardAmount}` },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+
        toast({
         variant: "destructive",
         title: "Reward Failed",
         description: "Could not record your reward. Please try again.",
       });
-       // Re-throw as a permission error if that's the likely cause
-       if (e.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: collection(firestore, 'transactions').path,
-                operation: 'create',
-                requestResourceData: { amount: rewardAmount, description },
-            });
-            errorEmitter.emit('permission-error', permissionError);
-       }
       return false;
     }
   };

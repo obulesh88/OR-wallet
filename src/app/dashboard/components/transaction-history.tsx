@@ -48,10 +48,9 @@ export function TransactionHistory() {
   useEffect(() => {
     if (user && firestore) {
       setLoading(true);
-      const transColRef = collection(firestore, "transactions");
+      const transColRef = collection(firestore, `users/${user.uid}/transactions`);
       const q = query(
         transColRef, 
-        where("userId", "==", user.uid), 
         orderBy("date", "desc"), 
         limit(4)
       );
