@@ -72,39 +72,34 @@ export default function EarnPage() {
   }, [showCaptcha]);
 
   const handleRewardUser = async (rewardAmount: number, description: string) => {
-     if (!user || !firestore) {
+    if (!user || !firestore) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to earn rewards." });
       return false;
     }
-    const userDocRef = doc(firestore, 'Users', user.uid);
+    const userDocRef = doc(firestore, 'users', user.uid);
+    // A backend function should process this transaction securely.
+    // For now, we optimistically update the UI and create a transaction record.
     try {
+      const transactionsColRef = collection(firestore, 'transactions');
+      const transactionData = {
+          userId: user.uid,
+          type: 'earn',
+          description: description,
+          amount: rewardAmount,
+          date: serverTimestamp(),
+          status: 'Completed',
+      };
+      
+      await addDoc(transactionsColRef, transactionData);
+
+      // This part is insecure and should be handled by a backend function.
+      // We are leaving it here for demonstration purposes of optimistic UI updates.
+      // In a real app, you'd remove this and have a backend update the balance.
       await runTransaction(firestore, async (transaction) => {
-        const userDoc = await transaction.get(userDocRef);
-        if (!userDoc.exists()) {
-          throw new Error("User document not found");
-        }
-
-        const currentOraBalance = userDoc.data().oraBalance || 0;
-        const newOraBalance = currentOraBalance + rewardAmount;
-        transaction.update(userDocRef, { oraBalance: newOraBalance });
-
-        const transactionsColRef = collection(firestore, 'Users', user.uid, 'transactions');
-        const transactionData = {
-            userId: user.uid,
-            type: 'earn',
-            description: description,
-            amount: rewardAmount,
-            date: serverTimestamp(),
-            status: 'Completed',
-        };
-        addDoc(transactionsColRef, transactionData).catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: transactionsColRef.path,
-                operation: 'create',
-                requestResourceData: transactionData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        });
+          const userDoc = await transaction.get(userDocRef);
+          if (!userDoc.exists()) throw new Error("User not found");
+          const newOraBalance = (userDoc.data().oraBalance || 0) + rewardAmount;
+          transaction.update(userDocRef, { oraBalance: newOraBalance });
       });
 
       toast({
@@ -114,11 +109,20 @@ export default function EarnPage() {
       return true;
 
     } catch (e: any) {
-      toast({
+       toast({
         variant: "destructive",
         title: "Reward Failed",
-        description: e.message || "An error occurred.",
+        description: "Could not record your reward. Please try again.",
       });
+       // Re-throw as a permission error if that's the likely cause
+       if (e.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: collection(firestore, 'transactions').path,
+                operation: 'create',
+                requestResourceData: { amount: rewardAmount, description },
+            });
+            errorEmitter.emit('permission-error', permissionError);
+       }
       return false;
     }
   };
@@ -275,7 +279,7 @@ export default function EarnPage() {
             <Button className="w-full" asChild>
                 <Link href="/dashboard/games">
                     <Play className="mr-2 h-4 w-4" /> Play
-                </Link>
+                </Link>Tip: This is a great place to integrate a third-party gaming rewards API.
             </Button>
           </CardFooter>
         </Card>

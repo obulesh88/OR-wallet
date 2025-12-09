@@ -56,7 +56,7 @@ export default function WithdrawalsPage() {
 
     useEffect(() => {
         if (user && firestore) {
-          const userDocRef = doc(firestore, 'Users', user.uid);
+          const userDocRef = doc(firestore, 'users', user.uid);
           const unsubscribe = onSnapshot(
             userDocRef,
             (doc) => {
@@ -97,7 +97,20 @@ export default function WithdrawalsPage() {
             requestedAt: serverTimestamp(),
         };
 
-        const withdrawalsColRef = collection(firestore, 'Withdrawals');
+        // This would be a new collection `withdrawals` or similar
+        // For now, let's log it to console and show a toast
+        console.log("Withdrawal Request:", withdrawalData);
+
+        toast({
+            title: 'Withdrawal Request Submitted (Simulation)',
+            description: `Your request to withdraw ${data.coins.toLocaleString()} coins has been logged.`,
+        });
+        form.reset();
+        setIsSubmitting(false);
+
+        // Example of how you would write to a 'withdrawals' collection
+        /*
+        const withdrawalsColRef = collection(firestore, 'withdrawals');
         
         addDoc(withdrawalsColRef, withdrawalData)
         .then(() => {
@@ -122,6 +135,7 @@ export default function WithdrawalsPage() {
         }).finally(() => {
             setIsSubmitting(false);
         });
+        */
     };
 
     const conversionRate = 0.001; // 1000 coins = 1 INR

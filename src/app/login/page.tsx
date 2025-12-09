@@ -52,7 +52,7 @@ async function createNewUserDocument(
     user: User, 
     signUpData: SignUpFormValues
 ) {
-    const userRef = doc(firestore, "Users", user.uid);
+    const userRef = doc(firestore, "users", user.uid);
     
     const newUser = {
         uid: user.uid,

@@ -15,7 +15,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useFirestore, useUser } from "@/firebase";
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, query, orderBy, limit, Timestamp } from "firebase/firestore";
+import { collection, onSnapshot, query, where, orderBy, limit, Timestamp } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
@@ -48,8 +48,13 @@ export function TransactionHistory() {
   useEffect(() => {
     if (user && firestore) {
       setLoading(true);
-      const transColRef = collection(firestore, "Users", user.uid, "transactions");
-      const q = query(transColRef, orderBy("date", "desc"), limit(4));
+      const transColRef = collection(firestore, "transactions");
+      const q = query(
+        transColRef, 
+        where("userId", "==", user.uid), 
+        orderBy("date", "desc"), 
+        limit(4)
+      );
       
       const unsubscribe = onSnapshot(q, 
         (snapshot) => {
@@ -111,7 +116,7 @@ export function TransactionHistory() {
                       : "text-foreground"
                   )}
                 >
-                  {transaction.amount > 0 ? "+" : ""}
+                  {transaction.type === 'earn' ? "+" : ""}
                   {transaction.amount.toLocaleString()}
                 </div>
               </div>

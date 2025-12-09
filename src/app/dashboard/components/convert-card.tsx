@@ -7,7 +7,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 import { useToast } from "@/hooks/use-toast";
-import { collection, addDoc, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { ArrowRight, Coins, IndianRupee, Repeat } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,7 +23,7 @@ export function ConvertCard() {
 
   useEffect(() => {
     if (user && firestore) {
-      const userDocRef = doc(firestore, 'Users', user.uid);
+      const userDocRef = doc(firestore, 'users', user.uid);
       const unsubscribe = onSnapshot(userDocRef, 
         (doc) => {
           if (doc.exists()) {
@@ -66,68 +66,40 @@ export function ConvertCard() {
 
     setIsConverting(true);
 
-    const userDocRef = doc(firestore, "Users", user.uid);
-    const transactionsColRef = collection(firestore, "Users", user.uid, "transactions");
+    const transactionsColRef = collection(firestore, "transactions");
 
-    try {
-      await runTransaction(firestore, async (transaction) => {
-        const userDoc = await transaction.get(userDocRef);
-        if (!userDoc.exists()) {
-          throw new Error("User document not found");
-        }
+    // Create a transaction document. A backend function will process this.
+    const transactionData = {
+      userId: user.uid,
+      type: "convert",
+      description: `Conversion request: ${oraAmount.toLocaleString()} ORA to INR`,
+      amount: oraAmount,
+      inrAmount: inrAmount,
+      date: serverTimestamp(),
+      status: "Pending",
+    };
 
-        const currentOraBalance = userDoc.data().oraBalance || 0;
-        const currentInrBalance = userDoc.data().balance || 0;
-
-        if (currentOraBalance < oraAmount) {
-          throw new Error("Insufficient ORA balance");
-        }
-
-        const newOraBalance = currentOraBalance - oraAmount;
-        const newInrBalance = currentInrBalance + (inrAmount * 100); // Store as paise
-
-        transaction.update(userDocRef, {
-          oraBalance: newOraBalance,
-          balance: newInrBalance,
-        });
-
-        // Add transaction record
-        const transactionData = {
-          userId: user.uid,
-          type: "convert",
-          description: `Converted ${oraAmount.toLocaleString()} ORA to INR`,
-          amount: -oraAmount,
-          inrAmount: inrAmount,
-          date: serverTimestamp(),
-          status: "Completed",
-        };
-        // We are not awaiting this to avoid blocking UI
-        addDoc(transactionsColRef, transactionData).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: transactionsColRef.path,
-            operation: 'create',
-            requestResourceData: transactionData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-      });
-
-      toast({
-        title: "Conversion Successful",
-        description: `You have converted ${oraAmount.toLocaleString()} ORA to ₹${inrAmount.toFixed(2)}.`,
+    addDoc(transactionsColRef, transactionData).then(() => {
+       toast({
+        title: "Conversion Request Submitted",
+        description: `Your request to convert ${oraAmount.toLocaleString()} ORA is being processed.`,
       });
       setOraAmount('');
-
-    } catch (e: any) {
-      console.error("Conversion failed: ", e);
+    }).catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: transactionsColRef.path,
+        operation: 'create',
+        requestResourceData: transactionData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
       toast({
         variant: "destructive",
         title: "Conversion Failed",
-        description: e.message || "An unexpected error occurred.",
+        description: "Could not submit your conversion request.",
       });
-    } finally {
+    }).finally(() => {
       setIsConverting(false);
-    }
+    });
   };
 
 
@@ -188,7 +160,7 @@ export function ConvertCard() {
         </div>
 
         <Button size="lg" className="w-full" onClick={handleConvert} disabled={!hasSufficientBalance || isConverting || oraAmount === '' || oraAmount <= 0}>
-          {isConverting ? 'Converting...' : 'Convert ORA to INR'}
+          {isConverting ? 'Submitting...' : 'Request Conversion'}
         </Button>
       </CardContent>
     </Card>

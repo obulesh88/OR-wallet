@@ -10,7 +10,7 @@ import {
 import { ArrowRightLeft } from "lucide-react";
 import { useFirestore, useUser } from "@/firebase";
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, query, orderBy, Timestamp } from "firebase/firestore";
+import { collection, onSnapshot, query, where, orderBy, Timestamp } from "firebase/firestore";
 import { Transaction, transactionIcons } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import {
@@ -57,8 +57,12 @@ export default function TransactionsPage() {
   useEffect(() => {
     if (user && firestore) {
       setLoading(true);
-      const transColRef = collection(firestore, "Users", user.uid, "transactions");
-      const q = query(transColRef, orderBy("date", "desc"));
+      const transColRef = collection(firestore, "transactions");
+      const q = query(
+        transColRef, 
+        where("userId", "==", user.uid),
+        orderBy("date", "desc")
+      );
       
       const unsubscribe = onSnapshot(q, 
         (snapshot) => {
@@ -105,7 +109,7 @@ export default function TransactionsPage() {
                     <TableRow>
                         <TableHead>Date</TableHead>
                         <TableHead>Description</TableHead>
-                        <TableHead>Amount</TableHead>
+                        <TableHead>Amount (ORA)</TableHead>
                         <TableHead className="text-right">Amount (INR)</TableHead>
                         <TableHead className="text-right">Status</TableHead>
                     </TableRow>
@@ -143,11 +147,11 @@ export default function TransactionsPage() {
                             </TableCell>
                             <TableCell className={cn(
                                 "font-semibold",
-                                transaction.amount > 0
+                                transaction.type === 'earn'
                                 ? "text-primary"
                                 : "text-foreground"
                             )}>
-                                {transaction.amount > 0 ? "+" : ""}
+                                {transaction.type === 'earn' ? "+" : "-"}
                                 {transaction.amount.toLocaleString()}
                             </TableCell>
                             <TableCell className="text-right font-medium">
