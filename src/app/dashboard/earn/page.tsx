@@ -273,12 +273,13 @@ export default function EarnPage() {
           </CardHeader>
           <CardContent className="flex-grow flex flex-col justify-center gap-4 p-6 pt-0">
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-col items-start gap-2">
             <Button className="w-full" asChild>
                 <Link href="/dashboard/games">
                     <Play className="mr-2 h-4 w-4" /> Play
-                </Link>Tip: This is a great place to integrate a third-party gaming rewards API.
+                </Link>
             </Button>
+            <p className="text-xs text-muted-foreground">Tip: This is a great place to integrate a third-party gaming rewards API.</p>
           </CardFooter>
         </Card>
       </div>
