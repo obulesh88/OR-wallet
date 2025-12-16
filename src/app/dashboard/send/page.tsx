@@ -36,7 +36,7 @@ export default function SendPage() {
   useEffect(() => {
     if (user && firestore) {
       setIsLoading(true);
-      const userDocRef = doc(firestore, 'Users', user.uid);
+      const userDocRef = doc(firestore, 'users', user.uid);
       const unsubscribe = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
           const data = doc.data();
