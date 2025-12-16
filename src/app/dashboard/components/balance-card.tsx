@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { useFirestore, useUser } from "@/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
-import { IndianRupee, History, Send, Coins } from "lucide-react";
+import { IndianRupee, History, Send, Coins, ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -67,6 +67,11 @@ export function BalanceCard() {
             <Link href="/dashboard/send">
                 <Send className="mr-2 h-4 w-4" /> Send
             </Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="#address">
+            <ArrowDown className="mr-2 h-4 w-4" /> Receive
+          </Link>
         </Button>
         <Button variant="secondary" asChild>
           <Link href="/dashboard/transactions">

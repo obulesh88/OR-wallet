@@ -58,7 +58,7 @@ export function UserAddressCard() {
   };
 
   return (
-    <Card>
+    <Card id="address">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">Your ORA Address</CardTitle>
         <Wallet className="h-4 w-4 text-muted-foreground" />
