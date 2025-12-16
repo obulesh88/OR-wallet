@@ -88,7 +88,7 @@ export function ConvertCard() {
             }
             
             const newOraBalance = (userDoc.data().oraBalance || 0) - oraAmount;
-            const newInrBalance = (userDoc.data().balance || 0) + (inrAmount * 100);
+            const newInrBalance = (userDoc.data().balance || 0) + inrAmount;
 
             if (newOraBalance < 0) {
                 throw "Insufficient ORA balance.";
@@ -114,7 +114,7 @@ export function ConvertCard() {
         const permissionError = new FirestorePermissionError({
             path: userDocRef.path,
             operation: 'update',
-            requestResourceData: { oraBalance: oraBalance - oraAmount, balance: oraBalance * conversionRate * 100 },
+            requestResourceData: { oraBalance: oraBalance - oraAmount, balance: oraBalance * conversionRate },
         });
         errorEmitter.emit('permission-error', permissionError);
 

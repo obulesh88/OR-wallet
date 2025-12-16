@@ -43,7 +43,7 @@ export function BalanceCard() {
     }
   }, [user, firestore]);
 
-  const rupeeBalance = balance / 100;
+  const rupeeBalance = balance;
 
   return (
     <Card>
