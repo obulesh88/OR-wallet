@@ -69,7 +69,7 @@ export function BalanceCard() {
             </Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="#address">
+          <Link href="https://rzp.io/rzp/pJpIHylk" target="_blank" rel="noopener noreferrer">
             <ArrowDown className="mr-2 h-4 w-4" /> Receive
           </Link>
         </Button>
@@ -111,7 +111,7 @@ export function OraBalanceCard() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb/2">
         <CardTitle className="text-sm font-medium">Your ORA Balance</CardTitle>
         <Coins className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
