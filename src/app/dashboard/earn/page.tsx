@@ -132,7 +132,7 @@ export default function EarnPage() {
 
   const handleClaimAdReward = async () => {
     setIsClaimingAd(true);
-    const success = await handleRewardUser(3, 'Earned from watching an Ad');
+    const success = await handleRewardUser(0.003, 'Earned from watching an Ad');
     if(success) {
         setAdWatched(false);
         setAdCooldown(10);
@@ -152,7 +152,7 @@ export default function EarnPage() {
     }
 
     setIsVerifying(true);
-    const success = await handleRewardUser(3, 'Earned from solving Captcha');
+    const success = await handleRewardUser(0.003, 'Earned from solving Captcha');
     if (success) {
       window.open('https://enviousgarbage.com/bm3/Vh0/P.3/p/v/bTmuVkJAZ/D/0d2oNnjmIez/MQT/gg3/L/TMYB2CM/jiMzx/OkDCg_', '_blank', 'noopener,noreferrer');
       setCaptchaCooldown(10);
