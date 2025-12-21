@@ -1,5 +1,5 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: 'https://ora-wallet.vercel.app',
+  siteUrl: 'https://orawallet.com',
   generateRobotsTxt: true,
 };

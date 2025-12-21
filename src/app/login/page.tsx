@@ -61,7 +61,7 @@ async function createNewUserDocument(
         phoneNumber: signUpData.phoneNumber.startsWith('+') ? signUpData.phoneNumber : `+91${signUpData.phoneNumber}`,
         photoURL: '',
         oraBalance: 0,
-        balance: 0, // Initial INR balance in paise
+        balance: 0,
         address: generateWalletAddress(user.uid),
         createdAt: serverTimestamp(),
         lastUpdated: serverTimestamp(),
@@ -149,15 +149,17 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="flex justify-center items-center mb-4">
+          <div className="flex justify-center items-center mb-2">
             <div className="font-bold text-2xl text-primary">
-              ORA
+              ORA Wallet
             </div>
           </div>
-          <CardTitle>{isSignUp ? 'Create an Account' : 'Welcome to ORA Wallet'}</CardTitle>
-
+          <CardTitle className="text-2xl">{isSignUp ? 'Create an Account' : 'Earn Real Money Daily'}</CardTitle>
           <CardDescription>
-            {isSignUp ? 'Enter your details to get started.' : 'Sign in to access your wallet'}
+            {isSignUp 
+              ? 'Enter your details to start earning.' 
+              : 'Sign in or create an account to complete simple tasks and get paid.'
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -252,7 +254,7 @@ export default function LoginPage() {
                 />
               )}
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (isSignUp ? 'Signing Up...' : 'Signing In...') : (isSignUp ? 'Sign Up' : 'Sign In')}
+                {isSubmitting ? (isSignUp ? 'Creating Account...' : 'Signing In...') : (isSignUp ? 'Sign Up & Start Earning' : 'Sign In')}
               </Button>
             </form>
           </Form>

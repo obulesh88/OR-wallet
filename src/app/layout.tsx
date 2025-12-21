@@ -4,9 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 export const metadata: Metadata = {
-  title: "ORA Wallet - Fast and Secure Digital Wallet",
-  description: "ORA Wallet is a simple, secure wallet for sending, receiving, and managing digital coins instantly.",
-  keywords: "ORA Wallet, crypto wallet, coin wallet, INR wallet, earn wallet, money transfer app, finance app",
+  title: "OR Wallet - Earn Money Daily by Completing Tasks | Rewards App",
+  description: "OR Wallet: Complete simple daily tasks, earn rewards, and increase your savings. Play games, take surveys, watch videos & get paid daily to your wallet.",
+  keywords: "earn money daily, task earning app, play games earn money, rewards app, OR Wallet",
   authors: [{ name: "ORA Wallet Team" }],
   robots: "index, follow",
   themeColor: "#2196f3",
@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     canonical: "https://orawallet.com",
   },
   openGraph: {
-    title: "ORA Wallet - Fast and Secure Digital Wallet",
-    description: "Manage your balance, claim rewards, and withdraw easily using ORA Wallet.",
+    title: "OR Wallet - Earn Money Daily by Completing Tasks",
+    description: "Complete simple tasks, earn rewards, and get paid daily to your digital wallet.",
     url: "https://orawallet.com",
     type: "website",
     images: [
