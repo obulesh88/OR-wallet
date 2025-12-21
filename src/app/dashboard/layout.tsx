@@ -85,7 +85,7 @@ export default function DashboardLayout({
         <SidebarHeader>
           <div className="flex items-center gap-2" data-testid="sidebar-header">
             <div className="font-bold text-lg">
-              ORA
+              OR
             </div>
             <span className="font-semibold text-lg">Wallet</span>
           </div>

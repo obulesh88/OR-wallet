@@ -150,7 +150,7 @@ export default function WithdrawalsPage() {
                     Withdraw Coins
                 </CardTitle>
                 <CardDescription>
-                    Convert your ORA coins to INR and withdraw to your UPI ID.
+                    Convert your OR coins to INR and withdraw to your UPI ID.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -161,19 +161,19 @@ export default function WithdrawalsPage() {
                             name="coins"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Amount to Withdraw (ORA Coins)</FormLabel>
+                                    <FormLabel>Amount to Withdraw (OR Coins)</FormLabel>
                                     <FormControl>
                                         <Input type="number" placeholder="e.g., 1000" {...field} />
                                     </FormControl>
                                     <FormDescription>
-                                        Available balance: {userCoins.toLocaleString()} ORA
+                                        Available balance: {userCoins.toLocaleString()} OR
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
                         <div className="text-sm text-center text-muted-foreground font-medium">
-                            {coinAmount.toLocaleString()} ORA ≈ ₹{inrAmount.toFixed(2)} INR
+                            {coinAmount.toLocaleString()} OR ≈ ₹{inrAmount.toFixed(2)} INR
                         </div>
                         <FormField
                             control={form.control}

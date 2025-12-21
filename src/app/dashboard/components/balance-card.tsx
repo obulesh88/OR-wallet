@@ -112,7 +112,7 @@ export function OraBalanceCard() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb/2">
-        <CardTitle className="text-sm font-medium">Your ORA Balance</CardTitle>
+        <CardTitle className="text-sm font-medium">Your OR Balance</CardTitle>
         <Coins className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
@@ -120,7 +120,7 @@ export function OraBalanceCard() {
         {oraBalance.toLocaleString()}
         </div>
         <CardDescription className="text-xs text-muted-foreground mt-1">
-          ORA Coins
+          OR Coins
         </CardDescription>
       </CardContent>
     </Card>

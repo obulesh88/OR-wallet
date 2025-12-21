@@ -60,7 +60,7 @@ export function UserAddressCard() {
   return (
     <Card id="address">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">Your ORA Address</CardTitle>
+        <CardTitle className="text-sm font-medium">Your OR Wallet Address</CardTitle>
         <Wallet className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
@@ -82,7 +82,7 @@ export function UserAddressCard() {
                 </Button>
               </div>
               <CardDescription className="text-xs text-muted-foreground mt-1">
-                Share this address to receive ORA coins.
+                Share this address to receive OR coins.
               </CardDescription>
             </div>
           </div>

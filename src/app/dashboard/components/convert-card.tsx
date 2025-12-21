@@ -19,7 +19,7 @@ export function ConvertCard() {
   const [oraBalance, setOraBalance] = useState(0);
   const [isConverting, setIsConverting] = useState(false);
   
-  const conversionRate = 0.001; // 1 ORA = 0.001 INR
+  const conversionRate = 0.001; // 1 OR = 0.001 INR
 
   useEffect(() => {
     if (user && firestore) {
@@ -50,7 +50,7 @@ export function ConvertCard() {
       toast({
         variant: "destructive",
         title: "Invalid Amount",
-        description: "Please enter a valid amount of ORA to convert.",
+        description: "Please enter a valid amount of OR to convert.",
       });
       return;
     }
@@ -59,7 +59,7 @@ export function ConvertCard() {
       toast({
         variant: "destructive",
         title: "Insufficient Balance",
-        description: "You do not have enough ORA to complete this conversion.",
+        description: "You do not have enough OR to complete this conversion.",
       });
       return;
     }
@@ -73,7 +73,7 @@ export function ConvertCard() {
     const transactionData = {
       userId: user.uid,
       type: "convert",
-      description: `Conversion: ${oraAmount.toLocaleString()} ORA to INR`,
+      description: `Conversion: ${oraAmount.toLocaleString()} OR to INR`,
       amount: oraAmount,
       inrAmount: inrAmount,
       date: serverTimestamp(),
@@ -91,7 +91,7 @@ export function ConvertCard() {
             const newInrBalance = (userDoc.data().balance || 0) + inrAmount;
 
             if (newOraBalance < 0) {
-                throw "Insufficient ORA balance.";
+                throw "Insufficient OR balance.";
             }
 
             transaction.update(userDocRef, { 
@@ -105,7 +105,7 @@ export function ConvertCard() {
 
         toast({
             title: "Conversion Successful",
-            description: `You have converted ${oraAmount.toLocaleString()} ORA to ₹${inrAmount.toFixed(3)}.`,
+            description: `You have converted ${oraAmount.toLocaleString()} OR to ₹${inrAmount.toFixed(3)}.`,
         });
         setOraAmount('');
 
@@ -144,7 +144,7 @@ export function ConvertCard() {
                 <div className="flex justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
                         <Coins className="w-6 h-6 text-primary" />
-                        <span className="font-bold text-lg">ORA</span>
+                        <span className="font-bold text-lg">OR</span>
                     </div>
                     <Input 
                       type="number" 
@@ -178,11 +178,11 @@ export function ConvertCard() {
         </div>
          {oraAmount !== '' && !hasSufficientBalance && (
             <p className="text-sm text-center text-destructive">
-                Insufficient ORA balance.
+                Insufficient OR balance.
             </p>
         )}
         <div className="text-sm text-center text-muted-foreground">
-            1000 ORA ≈ ₹1
+            1000 OR ≈ ₹1
         </div>
 
         <Button size="lg" className="w-full" onClick={handleConvert} disabled={!hasSufficientBalance || isConverting || oraAmount === '' || oraAmount <= 0}>

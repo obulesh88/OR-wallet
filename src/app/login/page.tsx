@@ -44,7 +44,7 @@ type LoginFormValues = z.infer<typeof formSchema>;
 type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 function generateWalletAddress(userId: string) {
-    return `ORA${userId.substring(0, 8).toUpperCase()}`;
+    return `OR${userId.substring(0, 8).toUpperCase()}`;
 }
 
 async function createNewUserDocument(
@@ -151,7 +151,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-2">
             <div className="font-bold text-2xl text-primary">
-              ORA Wallet
+              OR Wallet
             </div>
           </div>
           <CardTitle className="text-2xl">{isSignUp ? 'Create an Account' : 'Earn Real Money Daily'}</CardTitle>
