@@ -6,8 +6,8 @@ import { FirebaseClientProvider } from "@/firebase/client-provider";
 export const metadata: Metadata = {
   title: "OR Wallet - Earn Money Daily by Completing Tasks | Rewards App",
   description: "OR Wallet: Complete simple daily tasks, earn rewards, and increase your savings. Play games, take surveys, watch videos & get paid daily to your wallet.",
-  keywords: "earn money daily, task earning app, play games earn money, rewards app, OR Wallet",
-  authors: [{ name: "ORA Wallet Team" }],
+  keywords: "earn money app, task earning app, play games earn money, survey app India, daily earning app",
+  authors: [{ name: "OR Wallet Team" }],
   robots: "index, follow",
   themeColor: "#2196f3",
   alternates: {

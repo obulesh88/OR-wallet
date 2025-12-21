@@ -11,7 +11,8 @@ import {
   LogOut,
   Landmark,
   Loader2,
-  Gamepad2
+  Gamepad2,
+  HelpCircle
 } from "lucide-react";
 
 import {
@@ -40,6 +41,7 @@ const navItems = [
   { href: "/dashboard/games", icon: Gamepad2, label: "Games" },
   { href: "/dashboard/rewards", icon: Gift, label: "Rewards" },
   { href: "/dashboard/withdraw", icon: Landmark, label: "Withdraw" },
+  { href: "/dashboard/how-it-works", icon: HelpCircle, label: "How It Works"},
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
